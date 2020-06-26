@@ -597,8 +597,8 @@ Tensor Tensor::IndexExtract(int64_t dim, int64_t idx) const {
     if (shape_.size() == 0) {
         utility::LogError("Tensor has shape (), cannot be indexed.");
     }
-    dim = WrapDim(dim, NumDims());
-    idx = WrapDim(idx, shape_[dim]);
+    dim = shape_util::WrapDim(dim, NumDims());
+    idx = shape_util::WrapDim(idx, shape_[dim]);
 
     SizeVector new_shape(shape_);
     new_shape.erase(new_shape.begin() + dim);
@@ -616,7 +616,7 @@ Tensor Tensor::Slice(int64_t dim,
     if (shape_.size() == 0) {
         utility::LogError("Slice cannot be applied to 0-dim Tensor");
     }
-    dim = WrapDim(dim, NumDims());
+    dim = shape_util::WrapDim(dim, NumDims());
     if (dim < 0 || dim >= static_cast<int64_t>(shape_.size())) {
         utility::LogError("Dim {} is out of bound for SizeVector of length {}",
                           dim, shape_.size());
@@ -625,8 +625,8 @@ Tensor Tensor::Slice(int64_t dim,
     if (step == 0) {
         utility::LogError("Step size cannot be 0");
     }
-    start = WrapDim(start, shape_[dim]);
-    stop = WrapDim(stop, shape_[dim], /*inclusive=*/true);
+    start = shape_util::WrapDim(start, shape_[dim]);
+    stop = shape_util::WrapDim(stop, shape_[dim], /*inclusive=*/true);
     if (stop < start) {
         stop = start;
     }
@@ -1126,6 +1126,38 @@ Tensor Tensor::FromDLPack(const DLManagedTensor* src) {
                   reinterpret_cast<char*>(blob->GetDataPtr()) +
                           src->dl_tensor.byte_offset,
                   dtype, blob);
+}
+
+bool Tensor::AllClose(const Tensor& other, double rtol, double atol) const {
+    // TODO: support nan;
+    throw std::runtime_error("Unimplemented");
+}
+
+Tensor Tensor::IsClose(const Tensor& other, double rtol, double atol) const {
+    if (GetDevice() != other.GetDevice()) {
+        utility::LogError("Device mismatch {} != {}.", GetDevice().ToString(),
+                          other.GetDevice().ToString());
+    }
+    if (dtype_ != other.dtype_) {
+        utility::LogError("Dtype mismatch {} != {}.",
+                          DtypeUtil::ToString(dtype_),
+                          DtypeUtil::ToString(other.dtype_));
+    }
+    if (shape_ != other.shape_) {
+        utility::LogError("Shape mismatch {} != {}.", shape_, other.shape_);
+    }
+
+    Tensor lhs = this->To(Dtype::Float64);
+    Tensor rhs = other.To(Dtype::Float64);
+    Tensor actual_error = lhs - rhs.Abs();
+    Tensor max_error = atol + rtol * rhs.Abs();
+    return actual_error <= max_error;
+}
+
+bool Tensor::IsSame(const Tensor& other) const {
+    return blob_ == other.blob_ && shape_ == other.shape_ &&
+           strides_ == other.strides_ && data_ptr_ == other.data_ptr_ &&
+           dtype_ == other.dtype_;
 }
 
 }  // namespace core

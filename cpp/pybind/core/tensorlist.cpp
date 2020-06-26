@@ -59,9 +59,8 @@ void pybind_core_tensorlist(py::module& m) {
             .def("copy_from", &core::TensorList::CopyFrom)
             // Construct from existing tensors with compatible shapes
             .def("from_tensors",
-                 [](const std::vector<core::Tensor>& tensors,
-                    const core::Device& device) {
-                     core::TensorList tl = core::TensorList(tensors, device);
+                 [](const std::vector<core::Tensor>& tensors) {
+                     core::TensorList tl = core::TensorList(tensors);
                      return tl;
                  })
             // Construct from existing internal tensor with at least one valid
@@ -97,7 +96,8 @@ void pybind_core_tensorlist(py::module& m) {
                 return core::TensorList::Concatenate(tl_a, tl_b);
             });
 
-    tensorlist.def_property_readonly("shape", &core::TensorList::GetShape);
+    tensorlist.def_property_readonly("element_shape",
+                                     &core::TensorList::GetElementShape);
     tensorlist.def_property_readonly("dtype", &core::TensorList::GetDtype);
     tensorlist.def_property_readonly("device", &core::TensorList::GetDevice);
 }

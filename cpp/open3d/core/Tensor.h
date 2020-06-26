@@ -691,6 +691,54 @@ public:
     /// tensor.
     Tensor NonZero() const;
 
+    /// Returns true if the two tensors are element-wise equal within a
+    /// tolerance.
+    ///
+    /// - If the device is not the same: throws exception.
+    /// - If the dtype is not the same: throws exception.
+    /// - If the shape is not the same: returns false.
+    /// - Returns true if: abs(self - other) <= (atol + rtol * abs(other)).
+    ///
+    /// The equation is not symmetrial, i.e. a.AllClose(b) might not be the same
+    /// as b.AllClose(a). Also see Numpy's documentation:
+    /// https://numpy.org/doc/stable/reference/generated/numpy.allclose.html.
+    ///
+    /// TODO: support nan
+    ///
+    /// \param other The other tensor to compare with.
+    /// \param rtol Relative tolerance.
+    /// \param atol Absolute tolerance.
+    bool AllClose(const Tensor& other,
+                  double rtol = 1e-5,
+                  double atol = 1e-8) const;
+
+    /// Element-wise version of Tensor::AllClose.
+    ///
+    /// - If the device is not the same: throws exception.
+    /// - If the dtype is not the same: throws exception.
+    /// - If the shape is not the same: throws exception.
+    /// - For each element in the returned tensor:
+    ///   abs(self - other) <= (atol + rtol * abs(other)).
+    ///
+    /// The equation is not symmetrial, i.e. a.AllClose(b) might not be the same
+    /// as b.AllClose(a). Also see Numpy's documentation:
+    /// https://numpy.org/doc/stable/reference/generated/numpy.allclose.html.
+    ///
+    /// TODO: support nan
+    ///
+    /// \param other The other tensor to compare with.
+    /// \param rtol Relative tolerance.
+    /// \param atol Absolute tolerance.
+    /// \return A boolean tensor indicating whether the tensor is close.
+    Tensor IsClose(const Tensor& other,
+                   double rtol = 1e-5,
+                   double atol = 1e-8) const;
+
+    /// Returns true iff the tensor is the other tensor. This means that, the
+    /// two tensors have the same underlying memory, device, dtype, shape,
+    /// strides and etc.
+    bool IsSame(const Tensor& other) const;
+
     /// Retrive all values as an std::vector, for debugging and testing
     template <typename T>
     std::vector<T> ToFlatVector() const {

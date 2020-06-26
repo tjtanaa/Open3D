@@ -82,7 +82,12 @@ SizeVector ReductionShape(const SizeVector& src_shape,
 /// \brief Wrap around negative \p dim.
 ///
 /// E.g. If max_dim == 5, dim -1 will be converted to 4.
-int64_t WrapDim(int64_t dim, int64_t max_dim);
+///
+/// \param dim Dimension index
+/// \param max_dim Maximum dimension index
+/// \param inclusive Set to true to allow dim == max_dim. E.g. for slice
+///        T[start:end], we allow end == max_dim.
+int64_t WrapDim(int64_t dim, int64_t max_dim, bool inclusive = false);
 
 // Infers the size of a dim with size -1, if it exists. Also checks that new
 // shape is compatible with the number of elements.

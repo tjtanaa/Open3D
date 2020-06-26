@@ -145,15 +145,18 @@ SizeVector ReductionShape(const SizeVector& src_shape,
     return out_shape;
 }
 
-int64_t WrapDim(int64_t dim, int64_t max_dim) {
+int64_t WrapDim(int64_t dim, int64_t max_dim, bool inclusive) {
     if (max_dim <= 0) {
         utility::LogError("max_dim {} must be >= 0");
     }
-    if (dim < -max_dim || dim > max_dim - 1) {
+    int64_t min = -max_dim;
+    int64_t max = inclusive ? max_dim : max_dim - 1;
+
+    if (dim < min || dim > max) {
         utility::LogError(
                 "Index out-of-range: dim == {}, but it must satisfy {} <= dim "
                 "<= {}",
-                dim, 0, max_dim - 1);
+                dim, min, max);
     }
     if (dim < 0) {
         dim += max_dim;

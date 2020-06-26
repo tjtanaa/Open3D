@@ -29,43 +29,19 @@
 
 namespace open3d {
 namespace core {
-// Public
-TensorList::TensorList(const SizeVector& shape,
-                       Dtype dtype,
-                       const Device& device, /*= Device("CPU:0") */
-                       const int64_t& size /* = 0 */)
-    : shape_(shape),
-      dtype_(dtype),
-      device_(device),
-      size_(size),
-      reserved_size_(ReserveSize(size)) {
-    internal_tensor_ =
-            Tensor(ExpandFrontDim(shape_, reserved_size_), dtype_, device_);
-}
 
-TensorList::TensorList(const std::vector<Tensor>& tensors, const Device& device)
-    : device_(device) {
-    ConstructFromIterators(tensors.begin(), tensors.end());
-}
-
-TensorList::TensorList(const std::initializer_list<Tensor>& tensors,
-                       const Device& device)
-    : device_(device) {
-    ConstructFromIterators(tensors.begin(), tensors.end());
-}
-
-TensorList::TensorList(const Tensor& internal_tensor, bool copy)
-    : dtype_(internal_tensor.GetDtype()), device_(internal_tensor.GetDevice()) {
+TensorList::TensorList(const Tensor& internal_tensor, bool copy) {
     SizeVector shape = internal_tensor.GetShape();
 
     size_ = shape[0];
-    shape_ = SizeVector(std::next(shape.begin()), shape.end());
+    element_shape_ = SizeVector(std::next(shape.begin()), shape.end());
 
     if (copy) {
         // Construct the internal tensor with copy
         reserved_size_ = ReserveSize(size_);
-        SizeVector expanded_shape = ExpandFrontDim(shape_, reserved_size_);
-        internal_tensor_ = Tensor(expanded_shape, dtype_, device_);
+        SizeVector expanded_shape =
+                ExpandFrontDim(element_shape_, reserved_size_);
+        internal_tensor_ = Tensor(expanded_shape, GetDtype(), GetDevice());
         internal_tensor_.Slice(0 /* dim */, 0, size_) = internal_tensor;
     } else {
         // Directly reuse the slices
@@ -86,9 +62,7 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
 TensorList::TensorList(const TensorList& other) { CopyFrom(other); }
 
 void TensorList::CopyFrom(const TensorList& other) {
-    shape_ = other.GetShape();
-    dtype_ = other.GetDtype();
-    device_ = other.GetDevice();
+    element_shape_ = other.GetElementShape();
     size_ = other.GetSize();
     reserved_size_ = other.GetReservedSize();
     internal_tensor_.Assign(other.GetInternalTensor());
@@ -100,9 +74,7 @@ TensorList& TensorList::operator=(const TensorList& other) & {
 }
 
 void TensorList::ShallowCopyFrom(const TensorList& other) {
-    shape_ = other.GetShape();
-    dtype_ = other.GetDtype();
-    device_ = other.GetDevice();
+    element_shape_ = other.GetElementShape();
     size_ = other.GetSize();
     reserved_size_ = other.GetReservedSize();
     internal_tensor_.ShallowCopyFrom(other.GetInternalTensor());
@@ -127,8 +99,8 @@ void TensorList::Resize(int64_t n) {
 }
 
 void TensorList::PushBack(const Tensor& tensor) {
-    if (!shape_util::CanBeBrocastedToShape(tensor.GetShape(), shape_)) {
-        utility::LogError("Incompatible shape {} and {}", shape_,
+    if (!shape_util::CanBeBrocastedToShape(tensor.GetShape(), element_shape_)) {
+        utility::LogError("Incompatible shape {} and {}", element_shape_,
                           tensor.GetShape());
     }
 
@@ -149,19 +121,19 @@ TensorList TensorList::Concatenate(const TensorList& a, const TensorList& b) {
 }
 
 void TensorList::Extend(const TensorList& other) {  // Check consistency
-    if (shape_ != other.GetShape()) {
+    if (element_shape_ != other.GetElementShape()) {
         utility::LogError("TensorList shapes {} and {} are inconsistent.",
-                          shape_, other.GetShape());
+                          element_shape_, other.GetElementShape());
     }
 
-    if (device_ != other.GetDevice()) {
+    if (GetDevice() != other.GetDevice()) {
         utility::LogError("TensorList device {} and {} are inconsistent.",
-                          device_.ToString(), other.GetDevice().ToString());
+                          GetDevice().ToString(), other.GetDevice().ToString());
     }
 
-    if (dtype_ != other.GetDtype()) {
+    if (GetDtype() != other.GetDtype()) {
         utility::LogError("TensorList dtype {} and {} are inconsistent.",
-                          DtypeUtil::ToString(dtype_),
+                          DtypeUtil::ToString(GetDtype()),
                           DtypeUtil::ToString(other.GetDtype()));
     }
 
@@ -189,11 +161,14 @@ void TensorList::Extend(const TensorList& other) {  // Check consistency
 }
 
 Tensor TensorList::operator[](int64_t index) const {
-    index = WrapDim(index, size_);  // WrapDim asserts index is within range.
+    index = shape_util::WrapDim(
+            index, size_);  // WrapDim asserts index is within range.
     return internal_tensor_[index];
 }
 
-void TensorList::Clear() { *this = TensorList(shape_, dtype_, device_); }
+void TensorList::Clear() {
+    *this = TensorList(element_shape_, GetDtype(), GetDevice());
+}
 
 // Protected
 void TensorList::ExpandTensor(int64_t new_reserved_size) {
@@ -201,8 +176,10 @@ void TensorList::ExpandTensor(int64_t new_reserved_size) {
         utility::LogError("New size {} is smaller than current size {}.",
                           new_reserved_size, reserved_size_);
     }
-    SizeVector new_expanded_shape = ExpandFrontDim(shape_, new_reserved_size);
-    Tensor new_internal_tensor = Tensor(new_expanded_shape, dtype_, device_);
+    SizeVector new_expanded_shape =
+            ExpandFrontDim(element_shape_, new_reserved_size);
+    Tensor new_internal_tensor =
+            Tensor(new_expanded_shape, GetDtype(), GetDevice());
 
     // Copy data
     new_internal_tensor.Slice(0 /* dim */, 0, size_) =
@@ -220,12 +197,12 @@ SizeVector TensorList::ExpandFrontDim(const SizeVector& shape,
 
 int64_t TensorList::ReserveSize(int64_t n) {
     if (n < 0) {
-        utility::LogError("Negative tensor list size {} is unsupported.", n);
+        utility::LogError("Negative tensor list size {} is not supported.", n);
     }
 
     int64_t base = 1;
     if (n > (base << 61)) {
-        utility::LogError("Too large tensor list size {} is unsupported.", n);
+        utility::LogError("Too large tensor list size {} is not supported.", n);
     }
 
     for (int i = 63; i >= 0; --i) {
@@ -250,8 +227,8 @@ int64_t TensorList::ReserveSize(int64_t n) {
 std::string TensorList::ToString() const {
     std::ostringstream rc;
     rc << fmt::format("\nTensorList[size={}, shape={}, {}, {}]", size_,
-                      shape_.ToString(), DtypeUtil::ToString(dtype_),
-                      GetDevice().ToString());
+                      element_shape_.ToString(),
+                      DtypeUtil::ToString(GetDtype()), GetDevice().ToString());
     return rc.str();
 }
 }  // namespace core
