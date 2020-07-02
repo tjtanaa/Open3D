@@ -39,23 +39,23 @@ namespace core {
 namespace kernel {
 
 template <typename scalar_t>
-static inline scalar_t CPUSumReductionKernel(scalar_t src, scalar_t dst) {
-    return src + dst;
+static inline scalar_t CPUSumReductionKernel(scalar_t a, scalar_t b) {
+    return a + b;
 }
 
 template <typename scalar_t>
-static inline scalar_t CPUProdReductionKernel(scalar_t src, scalar_t dst) {
-    return src * dst;
+static inline scalar_t CPUProdReductionKernel(scalar_t a, scalar_t b) {
+    return a * b;
 }
 
 template <typename scalar_t>
-static inline scalar_t CPUMinReductionKernel(scalar_t src, scalar_t dst) {
-    return std::min(src, dst);
+static inline scalar_t CPUMinReductionKernel(scalar_t a, scalar_t b) {
+    return std::min(a, b);
 }
 
 template <typename scalar_t>
-static inline scalar_t CPUMaxReductionKernel(scalar_t src, scalar_t dst) {
-    return std::max(src, dst);
+static inline scalar_t CPUMaxReductionKernel(scalar_t a, scalar_t b) {
+    return std::max(a, b);
 }
 
 template <typename scalar_t>
