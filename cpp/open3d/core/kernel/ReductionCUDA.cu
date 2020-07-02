@@ -1119,18 +1119,28 @@ void ReductionCUDA(const Tensor& src,
                 if (indexer.NumWorkloads() == 0) {
                     dst.Fill(true);
                 } else {
-                    re.Run([] OPEN3D_HOST_DEVICE(
-                                   bool a, bool b) -> bool { return a && b; },
-                           true);
+                    re.Run(
+                            [] OPEN3D_HOST_DEVICE(uint8_t a,
+                                                  uint8_t b) -> uint8_t {
+                                return static_cast<uint8_t>(
+                                        static_cast<bool>(a) &&
+                                        static_cast<bool>(b));
+                            },
+                            static_cast<uint8_t>(true));
                 }
                 break;
             case ReductionOpCode::Any:
                 if (indexer.NumWorkloads() == 0) {
                     dst.Fill(false);
                 } else {
-                    re.Run([] OPEN3D_HOST_DEVICE(
-                                   bool a, bool b) -> bool { return a || b; },
-                           false);
+                    re.Run(
+                            [] OPEN3D_HOST_DEVICE(uint8_t a,
+                                                  uint8_t b) -> uint8_t {
+                                return static_cast<uint8_t>(
+                                        static_cast<bool>(a) ||
+                                        static_cast<bool>(b));
+                            },
+                            static_cast<uint8_t>(false));
                 }
                 break;
             default:
