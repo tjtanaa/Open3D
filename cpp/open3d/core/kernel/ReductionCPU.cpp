@@ -241,8 +241,7 @@ void ReductionCPU(const Tensor& src,
                   bool keepdim,
                   ReductionOpCode op_code) {
     if (s_regular_reduce_ops.find(op_code) != s_regular_reduce_ops.end()) {
-        DtypePolicy dtype_policy = DtypePolicy::ALL_SAME;
-        Indexer indexer({src}, dst, dtype_policy, dims);
+        Indexer indexer({src}, dst, DtypePolicy::ALL_SAME, dims);
         CPUReductionEngine re(indexer);
         DISPATCH_DTYPE_TO_TEMPLATE(src.GetDtype(), [&]() {
             scalar_t identity;
@@ -286,12 +285,10 @@ void ReductionCPU(const Tensor& src,
         if (dst.GetDtype() != Dtype::Int64) {
             utility::LogError("Arg-reduction must have int64 output dtype.");
         }
-        DtypePolicy dtype_policy = DtypePolicy::INPUT_SAME;
-
         // Accumulation buffer to store temporary min/max values.
         Tensor dst_acc(dst.GetShape(), src.GetDtype(), src.GetDevice());
 
-        Indexer indexer({src}, {dst, dst_acc}, dtype_policy, dims);
+        Indexer indexer({src}, {dst, dst_acc}, DtypePolicy::INPUT_SAME, dims);
         CPUArgReductionEngine re(indexer);
         DISPATCH_DTYPE_TO_TEMPLATE(src.GetDtype(), [&]() {
             scalar_t identity;
