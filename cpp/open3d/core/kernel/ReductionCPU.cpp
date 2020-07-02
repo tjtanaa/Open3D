@@ -337,10 +337,12 @@ void ReductionCPU(const Tensor& src,
         switch (op_code) {
             case ReductionOpCode::All:
                 // Identity == true. 0-sized tensor, returns true.
+                dst.Fill(true);
                 re.Run(CPUAllReductionKernel, static_cast<uint8_t>(true));
                 break;
             case ReductionOpCode::Any:
                 // Identity == false. 0-sized tensor, returns false.
+                dst.Fill(false);
                 re.Run(CPUAnyReductionKernel, static_cast<uint8_t>(false));
                 break;
             default:
