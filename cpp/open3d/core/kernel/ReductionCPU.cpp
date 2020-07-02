@@ -58,6 +58,14 @@ static inline scalar_t CPUMaxReductionKernel(scalar_t a, scalar_t b) {
     return std::max(a, b);
 }
 
+// static inline bool CPULogicalAndReductionKernel(bool a, bool b) {
+//     return a && b;
+// }
+
+// static inline bool CPULogicalOrReductionKernel(bool a, bool b) {
+//     return a || b;
+// }
+
 template <typename scalar_t>
 static inline std::pair<int64_t, scalar_t> CPUArgMinReductionKernel(
         int64_t a_idx, scalar_t a, int64_t b_idx, scalar_t b) {
@@ -236,7 +244,7 @@ void ReductionCPU(const Tensor& src,
                   const SizeVector& dims,
                   bool keepdim,
                   ReductionOpCode op_code) {
-    if (regular_reduce_ops.find(op_code) != regular_reduce_ops.end()) {
+    if (s_regular_reduce_ops.find(op_code) != s_regular_reduce_ops.end()) {
         DtypePolicy dtype_policy = DtypePolicy::ALL_SAME;
         Indexer indexer({src}, dst, dtype_policy, dims);
         CPUReductionEngine re(indexer);
@@ -278,7 +286,7 @@ void ReductionCPU(const Tensor& src,
                     break;
             }
         });
-    } else if (arg_reduce_ops.find(op_code) != arg_reduce_ops.end()) {
+    } else if (s_arg_reduce_ops.find(op_code) != s_arg_reduce_ops.end()) {
         if (dst.GetDtype() != Dtype::Int64) {
             utility::LogError("Arg-reduction must have int64 output dtype.");
         }

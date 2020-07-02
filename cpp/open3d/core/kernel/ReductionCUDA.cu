@@ -1010,9 +1010,9 @@ void ReductionCUDA(const Tensor& src,
                    bool keepdim,
                    ReductionOpCode op_code) {
     DtypePolicy dtype_policy;
-    if (regular_reduce_ops.find(op_code) != regular_reduce_ops.end()) {
+    if (s_regular_reduce_ops.find(op_code) != s_regular_reduce_ops.end()) {
         dtype_policy = DtypePolicy::ALL_SAME;
-    } else if (arg_reduce_ops.find(op_code) != arg_reduce_ops.end()) {
+    } else if (s_arg_reduce_ops.find(op_code) != s_arg_reduce_ops.end()) {
         if (dst.GetDtype() != Dtype::Int64) {
             utility::LogError("Arg-reduction must have int64 output dtype.");
         }
