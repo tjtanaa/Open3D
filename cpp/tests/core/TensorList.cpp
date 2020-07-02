@@ -81,9 +81,6 @@ TEST_P(TensorListPermuteDevices, ConstructFromTensorVector) {
     EXPECT_EQ(tl.GetReservedSize(), 8);
 
     // Values should be copied. IsClose also ensures the same dtype and device.
-    std::cout << tl[0].IsClose(t0).ToString() << std::endl;
-    std::cout << tl[1].IsClose(t1).ToString() << std::endl;
-    std::cout << tl[2].IsClose(t2).ToString() << std::endl;
     EXPECT_TRUE(tl[0].AllClose(t0));
     EXPECT_TRUE(tl[1].AllClose(t1));
     EXPECT_TRUE(tl[2].AllClose(t2));

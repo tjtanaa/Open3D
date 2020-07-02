@@ -59,11 +59,11 @@ static inline scalar_t CPUMaxReductionKernel(scalar_t a, scalar_t b) {
 }
 
 static inline uint8_t CPUAllReductionKernel(uint8_t a, uint8_t b) {
-    return static_cast<uint8_t>(static_cast<bool>(a) && static_cast<bool>(b));
+    return a && b;
 }
 
 static inline uint8_t CPUAnyReductionKernel(uint8_t a, uint8_t b) {
-    return static_cast<uint8_t>(static_cast<bool>(a) || static_cast<bool>(b));
+    return a || b;
 }
 
 template <typename scalar_t>
