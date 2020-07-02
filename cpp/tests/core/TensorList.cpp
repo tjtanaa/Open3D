@@ -101,7 +101,7 @@ TEST_P(TensorListPermuteDevices, ConstructFromTensorVector) {
     EXPECT_ANY_THROW(core::TensorList(std::vector<core::Tensor>({t5, t6})));
 }
 
-TEST_P(TensorListPermuteDevices, ConstructFromTensors) {
+TEST_P(TensorListPermuteDevices, VectorOfTensorsConstructors) {
     core::Device device = GetParam();
     core::Dtype dtype = core::Dtype::Float32;
 
