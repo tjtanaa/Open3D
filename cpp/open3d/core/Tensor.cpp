@@ -1035,6 +1035,20 @@ std::vector<Tensor> Tensor::NonZeroNumpy() const {
 
 Tensor Tensor::NonZero() const { return kernel::NonZero(*this); }
 
+bool Tensor::All() const {
+    Tensor dst({}, dtype_, GetDevice());
+    kernel::Reduction(*this, dst, shape_util::Iota(NumDims()), false,
+                      kernel::ReductionOpCode::All);
+    return dst.Item<uint8_t>();
+}
+
+bool Tensor::Any() const {
+    Tensor dst({}, dtype_, GetDevice());
+    kernel::Reduction(*this, dst, shape_util::Iota(NumDims()), false,
+                      kernel::ReductionOpCode::Any);
+    return dst.Item<uint8_t>();
+}
+
 DLManagedTensor* Tensor::ToDLPack() const {
     return Open3DDLManagedTensor::Create(*this);
 }
@@ -1130,7 +1144,8 @@ Tensor Tensor::FromDLPack(const DLManagedTensor* src) {
 
 bool Tensor::AllClose(const Tensor& other, double rtol, double atol) const {
     // TODO: support nan;
-    throw std::runtime_error("Unimplemented");
+    // throw std::runtime_error("Unimplemented");
+    return IsClose(other, rtol, atol).All();
 }
 
 Tensor Tensor::IsClose(const Tensor& other, double rtol, double atol) const {

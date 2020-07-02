@@ -26,6 +26,8 @@
 
 #include "open3d/core/ShapeUtil.h"
 
+#include <numeric>
+
 #include "open3d/core/SizeVector.h"
 #include "open3d/core/Tensor.h"
 
@@ -217,6 +219,15 @@ SizeVector ConcatShapes(const SizeVector& l_shape, const SizeVector& r_shape) {
     SizeVector dst_shape = l_shape;
     dst_shape.insert(dst_shape.end(), r_shape.begin(), r_shape.end());
     return dst_shape;
+}
+
+SizeVector Iota(int64_t n) {
+    if (n < 0) {
+        utility::LogError("Iota(n) requires n >= 0, but n == {}.", n);
+    }
+    SizeVector sv(n);
+    std::iota(sv.begin(), sv.end(), 0);
+    return sv;
 }
 
 }  // namespace shape_util

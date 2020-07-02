@@ -691,6 +691,16 @@ public:
     /// tensor.
     Tensor NonZero() const;
 
+    /// Returns true if all elements in the tensor are true. Only works for
+    /// boolean tensors. This function does not take reduction dimensions, and
+    /// the reduction is apply to all dimensions.
+    bool All() const;
+
+    /// Returns true if any elements in the tensor are true. Only works for
+    /// boolean tensors. This function does not take reduction dimensions, and
+    /// the reduction is apply to all dimensions.
+    bool Any() const;
+
     /// Returns true if the two tensors are element-wise equal within a
     /// tolerance.
     ///

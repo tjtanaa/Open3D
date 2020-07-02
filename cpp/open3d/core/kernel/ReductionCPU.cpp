@@ -58,13 +58,9 @@ static inline scalar_t CPUMaxReductionKernel(scalar_t a, scalar_t b) {
     return std::max(a, b);
 }
 
-// static inline bool CPULogicalAndReductionKernel(bool a, bool b) {
-//     return a && b;
-// }
+static inline bool CPUAllReductionKernel(bool a, bool b) { return a && b; }
 
-// static inline bool CPULogicalOrReductionKernel(bool a, bool b) {
-//     return a || b;
-// }
+static inline bool CPUAnyReductionKernel(bool a, bool b) { return a || b; }
 
 template <typename scalar_t>
 static inline std::pair<int64_t, scalar_t> CPUArgMinReductionKernel(
@@ -325,6 +321,31 @@ void ReductionCPU(const Tensor& src,
                     break;
             }
         });
+    } else if (s_boolean_reduce_ops.find(op_code) !=
+               s_boolean_reduce_ops.end()) {
+        if (src.GetDtype() != Dtype::Bool) {
+            utility::LogError(
+                    "Boolean reduction only supports boolean input tensor.");
+        }
+        if (dst.GetDtype() != Dtype::Bool) {
+            utility::LogError(
+                    "Boolean reduction only supports boolean output tensor.");
+        }
+        Indexer indexer({src}, dst, DtypePolicy::ALL_SAME, dims);
+        CPUReductionEngine re(indexer);
+        switch (op_code) {
+            case ReductionOpCode::All:
+                // Identity == true. 0-sized tensor, returns true.
+                re.Run(CPUAllReductionKernel, true);
+                break;
+            case ReductionOpCode::Any:
+                // Identity == false. 0-sized tensor, returns false.
+                re.Run(CPUAnyReductionKernel, false);
+                break;
+            default:
+                utility::LogError("Unsupported op code.");
+                break;
+        }
     } else {
         utility::LogError("Unsupported op code.");
     }
