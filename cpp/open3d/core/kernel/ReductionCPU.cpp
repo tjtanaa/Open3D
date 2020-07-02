@@ -58,9 +58,13 @@ static inline scalar_t CPUMaxReductionKernel(scalar_t a, scalar_t b) {
     return std::max(a, b);
 }
 
-static inline bool CPUAllReductionKernel(bool a, bool b) { return a && b; }
+static inline uint8_t CPUAllReductionKernel(uint8_t a, uint8_t b) {
+    return static_cast<uint8_t>(static_cast<bool>(a) && static_cast<bool>(b));
+}
 
-static inline bool CPUAnyReductionKernel(bool a, bool b) { return a || b; }
+static inline uint8_t CPUAnyReductionKernel(uint8_t a, uint8_t b) {
+    return static_cast<uint8_t>(static_cast<bool>(a) || static_cast<bool>(b));
+}
 
 template <typename scalar_t>
 static inline std::pair<int64_t, scalar_t> CPUArgMinReductionKernel(
@@ -333,11 +337,11 @@ void ReductionCPU(const Tensor& src,
         switch (op_code) {
             case ReductionOpCode::All:
                 // Identity == true. 0-sized tensor, returns true.
-                re.Run(CPUAllReductionKernel, true);
+                re.Run(CPUAllReductionKernel, static_cast<uint8_t>(true));
                 break;
             case ReductionOpCode::Any:
                 // Identity == false. 0-sized tensor, returns false.
-                re.Run(CPUAnyReductionKernel, false);
+                re.Run(CPUAnyReductionKernel, static_cast<uint8_t>(false));
                 break;
             default:
                 utility::LogError("Unsupported op code.");
