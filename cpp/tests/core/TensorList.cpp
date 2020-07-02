@@ -44,8 +44,14 @@ TEST_P(TensorListPermuteDevices, EmptyConstructor) {
     core::Dtype dtype = core::Dtype::Float32;
 
     // TensorList allows 0-sized and scalar {} element_shape
-    for (const core::SizeVector &element_shape : std::vector<core::SizeVector>{
-                 {}, {0}, {0, 0}, {0, 1}, {1, 0}, {2, 3}}) {
+    for (const core::SizeVector &element_shape :
+         std::vector<core::SizeVector>{{},   // Scalar {} element_shape is fine.
+                                       {0},  // 0-sized element_shape is fine.
+                                       {1},  // This is different from {}.
+                                       {0, 0},
+                                       {0, 1},
+                                       {1, 0},
+                                       {2, 3}}) {
         core::TensorList tl(element_shape, dtype, device);
         EXPECT_EQ(tl.GetElementShape(), element_shape);
         EXPECT_EQ(tl.GetDtype(), dtype);
@@ -59,13 +65,11 @@ TEST_P(TensorListPermuteDevices, EmptyConstructor) {
 
 TEST_P(TensorListPermuteDevices, ConstructFromIterators) {
     core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
 
-    core::Tensor t0(std::vector<float>(2 * 3, 0), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t1(std::vector<float>(2 * 3, 1), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t2(std::vector<float>(2 * 3, 2), {2, 3}, core::Dtype::Float32,
-                    device);
+    core::Tensor t0 = core::Tensor::Ones({2, 3}, dtype, device) * 0.;
+    core::Tensor t1 = core::Tensor::Ones({2, 3}, dtype, device) * 1.;
+    core::Tensor t2 = core::Tensor::Ones({2, 3}, dtype, device) * 2.;
 
     std::vector<core::Tensor> tensors = {t0, t1, t2};
     core::TensorList tensor_list(tensors.begin(), tensors.end());

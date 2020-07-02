@@ -58,9 +58,10 @@ class TensorList {
 public:
     TensorList() = delete;
 
-    /// Constructs an emtpy TensorList.
+    /// Constructs an empty TensorList.
     ///
-    /// \param element_shape Shape of the contained tensors, e.g. (3,).
+    /// \param element_shape Shape of the contained tensors, e.g. {3,}. 0-sized
+    /// and scalar element_shape are allowed.
     /// \param dtype Data type of the contained tensors. e.g. Dtype::Float32.
     /// \param device Device of the contained tensors. e.g. Device("CPU:0").
     /// \param size Number of initial tensors, similar to std::vector<T>::size.
@@ -71,18 +72,21 @@ public:
         : element_shape_(element_shape),
           size_(size),
           reserved_size_(ReserveSize(size)),
-          internal_tensor_(ExpandFrontDim(element_shape_, reserved_size_),
-                           dtype,
-                           device) {}
+          internal_tensor_(
+                  shape_util::ConcatShapes({reserved_size_}, element_shape_),
+                  dtype,
+                  device) {}
 
-    /// Constructs a TensorList from a vector of Tensors.
+    /// Constructs a TensorList from a vector of Tensors. The tensors must have
+    /// the same shape, dtype and device. Values will be copied.
     ///
     /// \param tensors A vector of tensors. The tensors must have common shape,
     /// dtype and device.
     TensorList(const std::vector<Tensor>& tensors)
         : TensorList(tensors.begin(), tensors.end()) {}
 
-    /// Constructs a TensorList from a list of Tensors.
+    /// Constructs a TensorList from a list of Tensors. The tensors must have
+    /// the same shape, dtype and device. Values will be copied.
     ///
     /// \param tensors A list of tensors. The tensors must have common shape,
     /// dtype and device.
@@ -90,7 +94,7 @@ public:
         : TensorList(tensors.begin(), tensors.end()) {}
 
     /// Constructs a TensorList from Tensor iterator. The tensors must have
-    /// common shape, dtype and device.
+    /// the same shape, dtype and device. Values will be copied.
     ///
     /// \param begin Begin iterator.
     /// \param end End iterator.
@@ -139,7 +143,7 @@ public:
 
         // Construct internal tensor.
         SizeVector expanded_shape =
-                ExpandFrontDim(element_shape_, reserved_size_);
+                shape_util::ConcatShapes({reserved_size_}, element_shape_);
         internal_tensor_ = Tensor(expanded_shape, dtype, device);
         size_t i = 0;
         for (auto iter = begin; iter != end; ++iter, ++i) {
@@ -235,11 +239,6 @@ public:
 protected:
     /// Expand the size of the internal tensor.
     void ExpandTensor(int64_t new_reserved_size);
-
-    /// Expand the element_shape in the begin indexing dimension.
-    /// e.g. (8, 8, 8) -> (1, 8, 8, 8)
-    static SizeVector ExpandFrontDim(const SizeVector& element_shape,
-                                     int64_t new_dim_size = 1);
 
     /// Compute the reserved size for the desired number of tensors
     /// with reserved_size_ = (1 << (ceil(log2(size_)) + 1)).

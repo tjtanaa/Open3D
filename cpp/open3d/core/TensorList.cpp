@@ -40,7 +40,7 @@ TensorList::TensorList(const Tensor& internal_tensor, bool copy) {
         // Construct the internal tensor with copy
         reserved_size_ = ReserveSize(size_);
         SizeVector expanded_shape =
-                ExpandFrontDim(element_shape_, reserved_size_);
+                shape_util::ConcatShapes({reserved_size_}, element_shape_);
         internal_tensor_ = Tensor(expanded_shape, GetDtype(), GetDevice());
         internal_tensor_.Slice(0 /* dim */, 0, size_) = internal_tensor;
     } else {
@@ -177,7 +177,7 @@ void TensorList::ExpandTensor(int64_t new_reserved_size) {
                           new_reserved_size, reserved_size_);
     }
     SizeVector new_expanded_shape =
-            ExpandFrontDim(element_shape_, new_reserved_size);
+            shape_util::ConcatShapes({new_reserved_size}, element_shape_);
     Tensor new_internal_tensor =
             Tensor(new_expanded_shape, GetDtype(), GetDevice());
 
@@ -186,13 +186,6 @@ void TensorList::ExpandTensor(int64_t new_reserved_size) {
             internal_tensor_.Slice(0 /* dim */, 0, size_);
     internal_tensor_ = new_internal_tensor;
     reserved_size_ = new_reserved_size;
-}
-
-SizeVector TensorList::ExpandFrontDim(const SizeVector& shape,
-                                      int64_t new_dim_size /* = 1 */) {
-    SizeVector expanded_shape = {new_dim_size};
-    expanded_shape.insert(expanded_shape.end(), shape.begin(), shape.end());
-    return expanded_shape;
 }
 
 int64_t TensorList::ReserveSize(int64_t n) {

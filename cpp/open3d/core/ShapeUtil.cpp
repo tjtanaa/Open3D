@@ -213,6 +213,12 @@ SizeVector InferShape(SizeVector shape, int64_t num_elements) {
                       num_elements);
 }
 
+SizeVector ConcatShapes(const SizeVector& l_shape, const SizeVector& r_shape) {
+    SizeVector dst_shape = l_shape;
+    dst_shape.insert(dst_shape.end(), r_shape.begin(), r_shape.end());
+    return dst_shape;
+}
+
 }  // namespace shape_util
 }  // namespace core
 }  // namespace open3d

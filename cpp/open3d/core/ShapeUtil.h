@@ -89,13 +89,16 @@ SizeVector ReductionShape(const SizeVector& src_shape,
 ///        T[start:end], we allow end == max_dim.
 int64_t WrapDim(int64_t dim, int64_t max_dim, bool inclusive = false);
 
-// Infers the size of a dim with size -1, if it exists. Also checks that new
-// shape is compatible with the number of elements.
-//
-// E.g. Shape({2, -1, 4}) with num_elemnts 24, will be inferred as {2, 3, 4}.
-//
-// Ref: PyTorch's aten/src/ATen/InferSize.h
+/// Infers the size of a dim with size -1, if it exists. Also checks that new
+/// shape is compatible with the number of elements.
+///
+/// E.g. Shape({2, -1, 4}) with num_elemnts 24, will be inferred as {2, 3, 4}.
+///
+/// Ref: PyTorch's aten/src/ATen/InferSize.h
 SizeVector InferShape(SizeVector shape, int64_t num_elements);
+
+/// Concatenate two shapes.
+SizeVector ConcatShapes(const SizeVector& l_shape, const SizeVector& r_shape);
 
 }  // namespace shape_util
 }  // namespace core
