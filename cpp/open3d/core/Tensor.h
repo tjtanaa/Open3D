@@ -917,6 +917,15 @@ inline std::vector<bool> Tensor::ToFlatVector() const {
     return values;
 }
 
+template <>
+inline bool Tensor::Item() const {
+    AssertTemplateDtype<bool>();
+    uint8_t value;
+    MemoryManager::MemcpyToHost(&value, data_ptr_, GetDevice(),
+                                sizeof(uint8_t));
+    return static_cast<bool>(value);
+}
+
 template <typename Scalar>
 inline void Tensor::Fill(Scalar v) {
     DISPATCH_DTYPE_TO_TEMPLATE_WITH_BOOL(GetDtype(), [&]() {

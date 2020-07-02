@@ -1039,14 +1039,14 @@ bool Tensor::All() const {
     Tensor dst({}, dtype_, GetDevice());
     kernel::Reduction(*this, dst, shape_util::Iota(NumDims()), false,
                       kernel::ReductionOpCode::All);
-    return dst.Item<uint8_t>();
+    return dst.Item<bool>();
 }
 
 bool Tensor::Any() const {
     Tensor dst({}, dtype_, GetDevice());
     kernel::Reduction(*this, dst, shape_util::Iota(NumDims()), false,
                       kernel::ReductionOpCode::Any);
-    return dst.Item<uint8_t>();
+    return dst.Item<bool>();
 }
 
 DLManagedTensor* Tensor::ToDLPack() const {
