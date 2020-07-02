@@ -1103,7 +1103,6 @@ void ReductionCUDA(const Tensor& src,
         });
     } else if (s_boolean_reduce_ops.find(op_code) !=
                s_boolean_reduce_ops.end()) {
-        // dtype_policy = DtypePolicy::ALL_SAME;
         if (src.GetDtype() != Dtype::Bool) {
             utility::LogError(
                     "Boolean reduction only supports boolean input tensor.");
@@ -1112,7 +1111,32 @@ void ReductionCUDA(const Tensor& src,
             utility::LogError(
                     "Boolean reduction only supports boolean output tensor.");
         }
-
+        Indexer indexer({src}, dst, DtypePolicy::ALL_SAME, dims);
+        CUDAReductionEngine re(indexer);
+        CUDADeviceSwitcher switcher(src.GetDevice());
+        switch (op_code) {
+            case ReductionOpCode::All:
+                if (indexer.NumWorkloads() == 0) {
+                    dst.Fill(true);
+                } else {
+                    re.Run([] OPEN3D_HOST_DEVICE(
+                                   bool a, bool b) -> bool { return a && b; },
+                           true);
+                }
+                break;
+            case ReductionOpCode::Any:
+                if (indexer.NumWorkloads() == 0) {
+                    dst.Fill(false);
+                } else {
+                    re.Run([] OPEN3D_HOST_DEVICE(
+                                   bool a, bool b) -> bool { return a || b; },
+                           false);
+                }
+                break;
+            default:
+                utility::LogError("Unsupported op code.");
+                break;
+        }
     } else {
         utility::LogError("Unsupported op code.");
     }
