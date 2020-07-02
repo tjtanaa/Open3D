@@ -892,11 +892,9 @@ inline Tensor::Tensor(const std::vector<bool>& init_vals,
 
     // std::vector<bool> possibly implements 1-bit-sized boolean storage. Open3D
     // uses 1-byte-sized boolean storage for easy indexing.
-    std::vector<unsigned char> init_vals_uchar(init_vals.size());
+    std::vector<uint8_t> init_vals_uchar(init_vals.size());
     std::transform(init_vals.begin(), init_vals.end(), init_vals_uchar.begin(),
-                   [](bool v) -> unsigned char {
-                       return static_cast<unsigned char>(v);
-                   });
+                   [](bool v) -> uint8_t { return static_cast<uint8_t>(v); });
 
     MemoryManager::MemcpyFromHost(
             blob_->GetDataPtr(), GetDevice(), init_vals_uchar.data(),
@@ -907,16 +905,15 @@ template <>
 inline std::vector<bool> Tensor::ToFlatVector() const {
     AssertTemplateDtype<bool>();
     std::vector<bool> values(NumElements());
-    std::vector<unsigned char> values_uchar(NumElements());
+    std::vector<uint8_t> values_uchar(NumElements());
     MemoryManager::MemcpyToHost(
             values_uchar.data(), Contiguous().GetDataPtr(), GetDevice(),
             DtypeUtil::ByteSize(GetDtype()) * NumElements());
 
     // std::vector<bool> possibly implements 1-bit-sized boolean storage. Open3D
     // uses 1-byte-sized boolean storage for easy indexing.
-    std::transform(
-            values_uchar.begin(), values_uchar.end(), values.begin(),
-            [](unsigned char v) -> bool { return static_cast<bool>(v); });
+    std::transform(values_uchar.begin(), values_uchar.end(), values.begin(),
+                   [](uint8_t v) -> bool { return static_cast<bool>(v); });
     return values;
 }
 
