@@ -919,6 +919,9 @@ inline std::vector<bool> Tensor::ToFlatVector() const {
 
 template <>
 inline bool Tensor::Item() const {
+    if (shape_.size() != 0) {
+        utility::LogError("Item only works for scalar Tensor of shape ()");
+    }
     AssertTemplateDtype<bool>();
     uint8_t value;
     MemoryManager::MemcpyToHost(&value, data_ptr_, GetDevice(),
