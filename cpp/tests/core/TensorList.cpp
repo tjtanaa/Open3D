@@ -44,7 +44,7 @@ TEST_P(TensorListPermuteDevices, EmptyConstructor) {
     core::Dtype dtype = core::Dtype::Float32;
 
     // TensorList allows 0-sized and scalar {} element_shape.
-    for (const core::SizeVector &element_shape : std::vector<core::SizeVector>{
+    for (const core::SizeVector& element_shape : std::vector<core::SizeVector>{
                  {},   // Scalar {} element_shape is fine.
                  {0},  // 0-sized element_shape is fine.
                  {1},  // This is different from {}.
@@ -71,9 +71,7 @@ TEST_P(TensorListPermuteDevices, ConstructFromTensorVector) {
     core::Tensor t0 = core::Tensor::Ones({2, 3}, dtype, device) * 0.;
     core::Tensor t1 = core::Tensor::Ones({2, 3}, dtype, device) * 1.;
     core::Tensor t2 = core::Tensor::Ones({2, 3}, dtype, device) * 2.;
-
-    std::vector<core::Tensor> tensors = {t0, t1, t2};
-    core::TensorList tl(tensors);
+    core::TensorList tl(std::vector<core::Tensor>({t0, t1, t2}));
 
     // Check tensor list.
     core::SizeVector full_shape({3, 2, 3});
@@ -103,41 +101,46 @@ TEST_P(TensorListPermuteDevices, ConstructFromTensorVector) {
     EXPECT_ANY_THROW(core::TensorList(std::vector<core::Tensor>({t5, t6})));
 }
 
-TEST_P(TensorListPermuteDevices, ConstructFromVector) {
+TEST_P(TensorListPermuteDevices, ConstructFromTensors) {
     core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
 
-    core::Tensor t0(std::vector<float>(2 * 3, 0), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t1(std::vector<float>(2 * 3, 1), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t2(std::vector<float>(2 * 3, 2), {2, 3}, core::Dtype::Float32,
-                    device);
+    core::Tensor t0 = core::Tensor::Ones({2, 3}, dtype, device) * 0.;
+    core::Tensor t1 = core::Tensor::Ones({2, 3}, dtype, device) * 1.;
+    core::Tensor t2 = core::Tensor::Ones({2, 3}, dtype, device) * 2.;
+    std::vector<core::Tensor> tensors({t0, t1, t2});
 
-    std::vector<core::Tensor> tensors = {t0, t1, t2};
-    core::TensorList tensor_list(tensors);
+    for (const core::TensorList& tl : std::vector<core::TensorList>({
+                 core::TensorList(tensors),
+                 core::TensorList(tensors.begin(), tensors.end()),
+                 core::TensorList({t0, t1, t2}),
+         })) {
+        core::SizeVector full_shape({3, 2, 3});
+        EXPECT_EQ(tl.AsTensor().GetShape(), full_shape);
+        EXPECT_EQ(tl.GetSize(), 3);
+        EXPECT_EQ(tl.GetReservedSize(), 8);
+        // Values are the same.
+        EXPECT_TRUE(tl[0].AllClose(t0));
+        EXPECT_TRUE(tl[1].AllClose(t1));
+        EXPECT_TRUE(tl[2].AllClose(t2));
+        // Tensors are copied.
+        EXPECT_FALSE(tl[0].IsSame(t0));
+        EXPECT_FALSE(tl[1].IsSame(t1));
+        EXPECT_FALSE(tl[2].IsSame(t2));
+    }
 
-    core::SizeVector shape({3, 2, 3});
-    EXPECT_EQ(tensor_list.AsTensor().GetShape(), shape);
-    EXPECT_EQ(tensor_list.GetSize(), 3);
-    EXPECT_EQ(tensor_list.GetReservedSize(), 8);
-}
+    // Device mismatch.
+    core::Tensor t3 = core::Tensor::Ones({2, 3}, dtype, core::Device("CPU:0"));
+    core::Tensor t4 = core::Tensor::Ones({2, 3}, dtype, device);
+    if (t3.GetDevice() != t4.GetDevice()) {
+        // This tests only fires when CUDA is available.
+        EXPECT_ANY_THROW(core::TensorList(std::vector<core::Tensor>({t3, t4})));
+    }
 
-TEST_P(TensorListPermuteDevices, ConstructFromInitList) {
-    core::Device device = GetParam();
-
-    core::Tensor t0(std::vector<float>(2 * 3, 0), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t1(std::vector<float>(2 * 3, 1), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t2(std::vector<float>(2 * 3, 2), {2, 3}, core::Dtype::Float32,
-                    device);
-
-    core::TensorList tensor_list({t0, t1, t2});
-
-    core::SizeVector shape({3, 2, 3});
-    EXPECT_EQ(tensor_list.AsTensor().GetShape(), shape);
-    EXPECT_EQ(tensor_list.GetSize(), 3);
-    EXPECT_EQ(tensor_list.GetReservedSize(), 8);
+    // Shape mismatch.
+    core::Tensor t5 = core::Tensor::Ones({2, 3}, core::Dtype::Float32, device);
+    core::Tensor t6 = core::Tensor::Ones({2, 3}, core::Dtype::Float64, device);
+    EXPECT_ANY_THROW(core::TensorList(std::vector<core::Tensor>({t5, t6})));
 }
 
 TEST_P(TensorListPermuteDevices, DISABLED_TensorConstructFromTensor) {
