@@ -371,6 +371,21 @@ TEST_P(TensorPermuteDevices, Item) {
     EXPECT_EQ(t_1_2_3.Item<float>(), 23.f);
 }
 
+TEST_P(TensorPermuteDevices, ItemBool) {
+    core::Device device = GetParam();
+
+    std::vector<bool> vals{true, true, false};
+    core::Tensor t(vals, {3}, core::Dtype::Bool, device);
+
+    core::Tensor t_0 = t[0];
+    EXPECT_THROW(t_0.Item<float>(), std::runtime_error);
+    EXPECT_THROW(t_0.Item<uint8_t>(), std::runtime_error);
+
+    EXPECT_EQ(t[0].Item<bool>(), true);
+    EXPECT_EQ(t[1].Item<bool>(), true);
+    EXPECT_EQ(t[2].Item<bool>(), false);
+}
+
 TEST_P(TensorPermuteDevices, ItemAssign) {
     core::Device device = GetParam();
 
