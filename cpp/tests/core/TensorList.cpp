@@ -149,12 +149,12 @@ TEST_P(TensorListPermuteDevices, DISABLED_TensorConstructFromTensor) {
     core::Tensor t(std::vector<float>(3 * 2 * 3, 1), {3, 2, 3},
                    core::Dtype::Float32, device);
 
-    core::TensorList tensor_list(t);
+    core::TensorList tl = core::TensorList::FromTensor(t);
     core::SizeVector shape({2, 3});
-    EXPECT_EQ(tensor_list.GetElementShape(), shape);
-    EXPECT_EQ(tensor_list.GetSize(), 3);
-    EXPECT_EQ(tensor_list.GetReservedSize(), 8);
-    EXPECT_EQ(tensor_list.AsTensor().ToFlatVector<float>(),
+    EXPECT_EQ(tl.GetElementShape(), shape);
+    EXPECT_EQ(tl.GetSize(), 3);
+    EXPECT_EQ(tl.GetReservedSize(), 8);
+    EXPECT_EQ(tl.AsTensor().ToFlatVector<float>(),
               std::vector<float>(3 * 2 * 3, 1));
 }
 

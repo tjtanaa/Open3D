@@ -71,7 +71,7 @@ public:
                const int64_t& size = 0)
         : element_shape_(element_shape),
           size_(size),
-          reserved_size_(ReserveSize(size)),
+          reserved_size_(ComputeReserveSize(size)),
           internal_tensor_(
                   shape_util::ConcatShapes({reserved_size_}, element_shape_),
                   dtype,
@@ -108,7 +108,7 @@ public:
 
         // Set size_ and reserved_size_.
         size_ = size;
-        reserved_size_ = ReserveSize(size_);
+        reserved_size_ = ComputeReserveSize(size_);
 
         // Check shape consistency and set element_shape_.
         element_shape_ = begin->GetShape();
@@ -151,22 +151,22 @@ public:
         }
     }
 
-    /// Constructor from a raw internal tensor.
-    /// The inverse of AsTensor().
+    /// Factory function to create TensorList from a Tensor.
     ///
-    /// \param internal_tensor raw tensor
-    /// \param inplace:
-    /// - If true (default), reuse the raw internal tensor. The input tensor
-    /// must be contiguous.
-    /// - If false, create a new contiguous internal tensor with precomputed
-    /// reserved size.
-    TensorList(const Tensor& internal_tensor, bool inplace = true);
-
-    /// Factory constructor from a raw tensor
+    /// \param tensor The input tensor. The tensor must have at least one
+    /// dimension (tensor.NumDims() >= 1). The first dimension of the tensor
+    /// will be used as the "size" dimension of the tensorlist, while the
+    /// remaining dimensions will be used as the element shape of the tensor
+    /// list. For example, if the input tensor has shape (2, 3, 4), the
+    /// resulting tensorlist will have size 2 and element shape (3, 4).
+    /// \param inplace If `inplace == true`, the tensorlist shares the same
+    /// memory with the input tensor. The input tensor must be contiguous. The
+    /// resulting tensorlist cannot be extended. If `inplace == false`, the
+    /// tensor values will be copied when creating the tensorlist.
     static TensorList FromTensor(const Tensor& tensor, bool inplace = false);
 
-    /// Copy constructor from a tensor list.
-    /// Create a new tensor list with copy of data.
+    /// Copy constructor from a tensorlist.
+    /// Create a new tensorlist with copy of data.
     TensorList(const TensorList& other);
 
     /// Deep copy
@@ -185,7 +185,7 @@ public:
     /// Return the reference of the contained valid tensors with shared memory.
     Tensor AsTensor() const;
 
-    /// Resize an existing tensor list.
+    /// Resize an existing tensorlist.
     /// If the size increases, the increased part will be assigned 0.
     /// If the size decreases, the decreased part's value will be undefined.
     void Resize(int64_t n);
@@ -219,7 +219,7 @@ public:
     /// For advanced indexing like Slice, use tensorlist.AsTensor().Slice().
     Tensor operator[](int64_t index) const;
 
-    /// Clear the tensor list by discarding all data and creating a empty one.
+    /// Clear the tensorlist by discarding all data and creating a empty one.
     void Clear();
 
     std::string ToString() const;
@@ -236,13 +236,27 @@ public:
 
     const Tensor& GetInternalTensor() const { return internal_tensor_; }
 
+    bool IsExtendable() const { return is_extendable_; }
+
 protected:
+    /// Fully specified consturctor.
+    TensorList(const SizeVector element_shape,
+               int64_t size,
+               int64_t reserved_size,
+               const Tensor& internal_tensor,
+               bool is_extendable)
+        : element_shape_(element_shape),
+          size_(size),
+          reserved_size_(reserved_size),
+          internal_tensor_(internal_tensor),
+          is_extendable_(is_extendable) {}
+
     /// Expand the size of the internal tensor.
     void ExpandTensor(int64_t new_reserved_size);
 
     /// Compute the reserved size for the desired number of tensors
     /// with reserved_size_ = (1 << (ceil(log2(size_)) + 1)).
-    int64_t ReserveSize(int64_t n);
+    static int64_t ComputeReserveSize(int64_t size);
 
 protected:
     /// The shape for each element tensor in the TensorList.
@@ -259,11 +273,18 @@ protected:
     /// general, reserved_size_ >= (1 << (ceil(log2(size_)) + 1)) as
     /// conventionally done in std::vector.
     ///
-    /// Examples: (size_, reserved_size_) = (3, 8), (4, 8), (5, 16).
+    /// Examples: size_ = 3, reserved_size_ = 8
+    ///           size_ = 4, reserved_size_ = 8
+    ///           size_ = 5, reserved_size_ = 16
     int64_t reserved_size_ = 0;
 
     /// The internal tensor for data storage.
     Tensor internal_tensor_;
+
+    /// Whether the TensorList is extendable. Typically, if the TensorList is
+    /// created with pre-allocated shared buffer, the TensorList is not
+    /// extendable.
+    bool is_extendable_ = true;
 };
 }  // namespace core
 }  // namespace open3d

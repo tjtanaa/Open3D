@@ -30,33 +30,31 @@
 namespace open3d {
 namespace core {
 
-TensorList::TensorList(const Tensor& internal_tensor, bool copy) {
-    SizeVector shape = internal_tensor.GetShape();
+TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
+    SizeVector shape = tensor.GetShape();
+    if (shape.size() == 0) {
+        utility::LogError("Tensor should at least have one dimension.");
+    }
+    SizeVector element_shape =
+            SizeVector(std::next(shape.begin()), shape.end());
+    int64_t size = shape[0];
 
-    size_ = shape[0];
-    element_shape_ = SizeVector(std::next(shape.begin()), shape.end());
-
-    if (copy) {
-        // Construct the internal tensor with copy
-        reserved_size_ = ReserveSize(size_);
-        SizeVector expanded_shape =
-                shape_util::ConcatShapes({reserved_size_}, element_shape_);
-        internal_tensor_ = Tensor(expanded_shape, GetDtype(), GetDevice());
-        internal_tensor_.Slice(0 /* dim */, 0, size_) = internal_tensor;
-    } else {
-        // Directly reuse the slices
-        if (!internal_tensor.IsContiguous()) {
+    if (inplace) {
+        if (!tensor.IsContiguous()) {
             utility::LogError(
                     "Tensor must be contiguous for inplace TensorList "
                     "construction.");
         }
-        reserved_size_ = size_;
-        internal_tensor_ = internal_tensor;
+        return TensorList(element_shape, size, size, tensor, false);
+    } else {
+        int64_t reserved_size = TensorList::ComputeReserveSize(size);
+        Tensor internal_tensor = Tensor::Empty(
+                shape_util::ConcatShapes({reserved_size}, element_shape),
+                tensor.GetDtype(), tensor.GetDevice());
+        internal_tensor.Slice(0, 0, size) = tensor;
+        return TensorList(element_shape, size, reserved_size, internal_tensor,
+                          true);
     }
-}
-
-TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
-    return TensorList(tensor, inplace);
 }
 
 TensorList::TensorList(const TensorList& other) { CopyFrom(other); }
@@ -86,7 +84,7 @@ Tensor TensorList::AsTensor() const {
 
 void TensorList::Resize(int64_t n) {
     // Increase internal tensor size
-    int64_t new_reserved_size = ReserveSize(n);
+    int64_t new_reserved_size = ComputeReserveSize(n);
     if (new_reserved_size > reserved_size_) {
         ExpandTensor(new_reserved_size);
     }
@@ -104,7 +102,7 @@ void TensorList::PushBack(const Tensor& tensor) {
                           tensor.GetShape());
     }
 
-    int64_t new_reserved_size = ReserveSize(size_ + 1);
+    int64_t new_reserved_size = ComputeReserveSize(size_ + 1);
     if (new_reserved_size > reserved_size_) {
         ExpandTensor(new_reserved_size);
     }
@@ -151,7 +149,7 @@ void TensorList::Extend(const TensorList& other) {  // Check consistency
         extension = TensorList(*this);
     }
 
-    int64_t new_reserved_size = ReserveSize(size_ + extension.GetSize());
+    int64_t new_reserved_size = ComputeReserveSize(size_ + extension.GetSize());
     if (new_reserved_size > reserved_size_) {
         ExpandTensor(new_reserved_size);
     }
@@ -188,7 +186,7 @@ void TensorList::ExpandTensor(int64_t new_reserved_size) {
     reserved_size_ = new_reserved_size;
 }
 
-int64_t TensorList::ReserveSize(int64_t n) {
+int64_t TensorList::ComputeReserveSize(int64_t n) {
     if (n < 0) {
         utility::LogError("Negative tensor list size {} is not supported.", n);
     }
