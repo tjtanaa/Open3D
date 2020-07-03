@@ -159,6 +159,7 @@ public:
     /// remaining dimensions will be used as the element shape of the tensor
     /// list. For example, if the input tensor has shape (2, 3, 4), the
     /// resulting tensorlist will have size 2 and element shape (3, 4).
+    ///
     /// \param inplace If `inplace == true`, the tensorlist shares the same
     /// memory with the input tensor. The input tensor must be contiguous. The
     /// resulting tensorlist cannot be extended. If `inplace == false`, the

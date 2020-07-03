@@ -101,7 +101,7 @@ TEST_P(TensorListPermuteDevices, ConstructFromTensorVector) {
     EXPECT_ANY_THROW(core::TensorList(std::vector<core::Tensor>({t5, t6})));
 }
 
-TEST_P(TensorListPermuteDevices, VectorOfTensorsConstructors) {
+TEST_P(TensorListPermuteDevices, ConstructFromTensors) {
     core::Device device = GetParam();
     core::Dtype dtype = core::Dtype::Float32;
 
@@ -143,19 +143,16 @@ TEST_P(TensorListPermuteDevices, VectorOfTensorsConstructors) {
     EXPECT_ANY_THROW(core::TensorList(std::vector<core::Tensor>({t5, t6})));
 }
 
-TEST_P(TensorListPermuteDevices, DISABLED_TensorConstructFromTensor) {
+TEST_P(TensorListPermuteDevices, FromTensor) {
     core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
 
-    core::Tensor t(std::vector<float>(3 * 2 * 3, 1), {3, 2, 3},
-                   core::Dtype::Float32, device);
-
+    core::Tensor t = core::Tensor::Ones({3, 4, 5}, dtype, device);
     core::TensorList tl = core::TensorList::FromTensor(t);
-    core::SizeVector shape({2, 3});
-    EXPECT_EQ(tl.GetElementShape(), shape);
+
+    EXPECT_EQ(tl.GetElementShape(), core::SizeVector({4, 5}));
     EXPECT_EQ(tl.GetSize(), 3);
     EXPECT_EQ(tl.GetReservedSize(), 8);
-    EXPECT_EQ(tl.AsTensor().ToFlatVector<float>(),
-              std::vector<float>(3 * 2 * 3, 1));
 }
 
 TEST_P(TensorListPermuteDevices, CopyConstruct) {
