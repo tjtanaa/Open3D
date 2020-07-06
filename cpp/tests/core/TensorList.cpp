@@ -146,13 +146,23 @@ TEST_P(TensorListPermuteDevices, ConstructFromTensors) {
 TEST_P(TensorListPermuteDevices, FromTensor) {
     core::Device device = GetParam();
     core::Dtype dtype = core::Dtype::Float32;
-
     core::Tensor t = core::Tensor::Ones({3, 4, 5}, dtype, device);
-    core::TensorList tl = core::TensorList::FromTensor(t);
 
+    // Copyied tensor.
+    core::TensorList tl = core::TensorList::FromTensor(t);
     EXPECT_EQ(tl.GetElementShape(), core::SizeVector({4, 5}));
     EXPECT_EQ(tl.GetSize(), 3);
     EXPECT_EQ(tl.GetReservedSize(), 8);
+    EXPECT_TRUE(tl.AsTensor().AllClose(t));
+    EXPECT_FALSE(tl.AsTensor().IsSame(t));
+
+    // Inplace tensor.
+    core::TensorList tl_inplace = core::TensorList::FromTensor(t, true);
+    EXPECT_EQ(tl_inplace.GetElementShape(), core::SizeVector({4, 5}));
+    EXPECT_EQ(tl_inplace.GetSize(), 3);
+    EXPECT_EQ(tl_inplace.GetReservedSize(), 3);
+    EXPECT_TRUE(tl_inplace.AsTensor().AllClose(t));
+    EXPECT_TRUE(tl_inplace.AsTensor().IsSame(t));
 }
 
 TEST_P(TensorListPermuteDevices, CopyConstruct) {
