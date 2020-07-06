@@ -45,7 +45,8 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
                     "Tensor must be contiguous for inplace TensorList "
                     "construction.");
         }
-        return TensorList(element_shape, size, size, tensor, false);
+        return TensorList(element_shape, size, size, tensor,
+                          /*is_resizable=*/false);
     } else {
         int64_t reserved_size = TensorList::ComputeReserveSize(size);
         Tensor internal_tensor = Tensor::Empty(
@@ -53,7 +54,7 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
                 tensor.GetDtype(), tensor.GetDevice());
         internal_tensor.Slice(0, 0, size) = tensor;
         return TensorList(element_shape, size, reserved_size, internal_tensor,
-                          true);
+                          /*is_resizable=*/true);
     }
 }
 

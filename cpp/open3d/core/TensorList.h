@@ -237,7 +237,7 @@ public:
 
     const Tensor& GetInternalTensor() const { return internal_tensor_; }
 
-    bool IsExtendable() const { return is_extendable_; }
+    bool IsResizable() const { return is_resizable_; }
 
 protected:
     /// Fully specified consturctor.
@@ -245,12 +245,12 @@ protected:
                int64_t size,
                int64_t reserved_size,
                const Tensor& internal_tensor,
-               bool is_extendable)
+               bool is_resizable)
         : element_shape_(element_shape),
           size_(size),
           reserved_size_(reserved_size),
           internal_tensor_(internal_tensor),
-          is_extendable_(is_extendable) {}
+          is_resizable_(is_resizable) {}
 
     /// Expand the size of the internal tensor.
     void ExpandTensor(int64_t new_reserved_size);
@@ -282,10 +282,10 @@ protected:
     /// The internal tensor for data storage.
     Tensor internal_tensor_;
 
-    /// Whether the TensorList is extendable. Typically, if the TensorList is
+    /// Whether the TensorList is resizable. Typically, if the TensorList is
     /// created with pre-allocated shared buffer, the TensorList is not
-    /// extendable.
-    bool is_extendable_ = true;
+    /// resizable.
+    bool is_resizable_ = true;
 };
 }  // namespace core
 }  // namespace open3d
