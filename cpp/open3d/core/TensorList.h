@@ -166,9 +166,23 @@ public:
     /// tensor values will be copied when creating the tensorlist.
     static TensorList FromTensor(const Tensor& tensor, bool inplace = false);
 
-    /// Copy constructor from a tensorlist.
-    /// Create a new tensorlist with copy of data.
-    TensorList(const TensorList& other);
+    /// Lvalue shallow copy constructor. The shallow copy behavior is consistent
+    /// with Tensor and PyTorch-Tensor's behavior.
+    TensorList(const TensorList& other)
+        : TensorList(other.element_shape_,
+                     other.size_,
+                     other.reserved_size_,
+                     other.internal_tensor_,
+                     other.is_resizable_) {}
+
+    /// Rvalue shallow copy constructor. The shallow copy behavior is consistent
+    /// with Tensor and PyTorch-Tensor's behavior.
+    TensorList(TensorList&& other)
+        : TensorList(other.element_shape_,
+                     other.size_,
+                     other.reserved_size_,
+                     other.internal_tensor_,
+                     other.is_resizable_) {}
 
     /// Deep copy
     void CopyFrom(const TensorList& other);

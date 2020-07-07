@@ -58,8 +58,6 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
     }
 }
 
-TensorList::TensorList(const TensorList& other) { CopyFrom(other); }
-
 void TensorList::CopyFrom(const TensorList& other) {
     element_shape_ = other.GetElementShape();
     size_ = other.GetSize();
