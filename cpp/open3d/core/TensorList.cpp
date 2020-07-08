@@ -65,11 +65,6 @@ void TensorList::CopyFrom(const TensorList& other) {
     internal_tensor_.Assign(other.GetInternalTensor());
 }
 
-TensorList& TensorList::operator=(const TensorList& other) & {
-    ShallowCopyFrom(other);
-    return *this;
-}
-
 void TensorList::ShallowCopyFrom(const TensorList& other) {
     element_shape_ = other.GetElementShape();
     size_ = other.GetSize();

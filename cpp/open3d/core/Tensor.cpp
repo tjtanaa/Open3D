@@ -136,26 +136,6 @@ public:
     }
 };
 
-/// Tensor assignment lvalue = lvalue, e.g. `tensor_a = tensor_b`
-Tensor& Tensor::operator=(const Tensor& other) & {
-    shape_ = other.shape_;
-    strides_ = other.strides_;
-    dtype_ = other.dtype_;
-    blob_ = other.blob_;
-    data_ptr_ = other.data_ptr_;
-    return *this;
-}
-
-/// Tensor assignment lvalue = rvalue, e.g. `tensor_a = tensor_b[0]`
-Tensor& Tensor::operator=(Tensor&& other) & {
-    shape_ = other.shape_;
-    strides_ = other.strides_;
-    dtype_ = other.dtype_;
-    blob_ = other.blob_;
-    data_ptr_ = other.data_ptr_;
-    return *this;
-}
-
 /// Tensor assignment rvalue = lvalue, e.g. `tensor_a[0] = tensor_b`
 Tensor& Tensor::operator=(const Tensor& other) && {
     kernel::Copy(other, *this);

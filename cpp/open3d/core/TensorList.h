@@ -166,21 +166,25 @@ public:
     /// tensor values will be copied when creating the tensorlist.
     static TensorList FromTensor(const Tensor& tensor, bool inplace = false);
 
-    /// Copy constructor and move constructor for TensorList. The internal
-    /// tensor shares the same memory. Also see: the copy and move constructor
-    /// for Tensor.
+    /// Copy constructor for TensorList. The internal tensor shares the same
+    /// memory as the input. Also see: the copy constructor for Tensor.
     TensorList(const TensorList& other) = default;
+
+    /// Move constructor for TensorList. The internal tensor shares the same
+    /// memory as the input. Also see: the move constructor for Tensor.
     TensorList(TensorList&& other) = default;
 
-    /// Deep copy
-    void CopyFrom(const TensorList& other);
+    /// Copy assignment operator. This results in a "shallow" copy of the
+    /// internal tensor.
+    TensorList& operator=(const TensorList& other) & = default;
 
-    /// TensorList assignment lvalue = lvalue, e.g.
-    /// `tensorlist_a = tensorlist_b`,
-    /// resulting in a shallow copy.
-    /// We don't redirect Slice operation to tensors, so right value assignment
-    /// is not explicitly supported.
-    TensorList& operator=(const TensorList& other) &;
+    /// Move assignment operator. This results in a "shallow" copy of the
+    /// internal tensor.
+    TensorList& operator=(TensorList&& other) & = default;
+
+    /// Performs actual copy from another TensorList. The internal tensor will
+    /// be explicitly copied.
+    void CopyFrom(const TensorList& other);
 
     /// Shallow copy
     void ShallowCopyFrom(const TensorList& other);
