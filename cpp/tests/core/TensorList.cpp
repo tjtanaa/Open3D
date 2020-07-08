@@ -184,7 +184,6 @@ TEST_P(TensorListPermuteDevices, MoveConstructor) {
         return core::TensorList::FromTensor(t, /*inplace=*/true);
     };
     core::TensorList tl(create_tl());
-
     EXPECT_TRUE(tl.AsTensor().IsSame(t));
 }
 
