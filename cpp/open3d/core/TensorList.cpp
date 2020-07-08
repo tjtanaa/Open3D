@@ -59,17 +59,13 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
 }
 
 void TensorList::CopyFrom(const TensorList& other) {
-    element_shape_ = other.GetElementShape();
-    size_ = other.GetSize();
-    reserved_size_ = other.GetReservedSize();
-    internal_tensor_.Assign(other.GetInternalTensor());
+    ShallowCopyFrom(other);
+    internal_tensor_ = other.AsTensor().Copy();
 }
 
 void TensorList::ShallowCopyFrom(const TensorList& other) {
-    element_shape_ = other.GetElementShape();
-    size_ = other.GetSize();
-    reserved_size_ = other.GetReservedSize();
-    internal_tensor_.ShallowCopyFrom(other.GetInternalTensor());
+    // Copy assignment operator is performing shallow copy.
+    *this = other;
 }
 
 Tensor TensorList::AsTensor() const {

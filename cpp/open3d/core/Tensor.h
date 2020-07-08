@@ -149,6 +149,12 @@ public:
                         Dtype dtype,
                         const Device& device = Device("CPU:0"));
 
+    /// Create a tensor with uninitilized values with the same dtype and device
+    /// as the other tensor.
+    static Tensor EmptyLike(const Tensor& other) {
+        return Tensor::Empty(other.shape_, other.dtype_, other.GetDevice());
+    }
+
     /// Create a tensor fill with specified value.
     template <typename T>
     static Tensor Full(const SizeVector& shape,
@@ -296,6 +302,9 @@ public:
     /// Copy Tensor to a specified device
     /// The resulting Tensor will be compacted and contiguous
     Tensor Copy(const Device& device) const;
+
+    /// Copy Tensor to the same device.
+    Tensor Copy() const { return Copy(GetDevice()); };
 
     /// Copy Tensor values to current tensor for source tensor
     void CopyFrom(const Tensor& other);
