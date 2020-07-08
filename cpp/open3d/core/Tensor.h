@@ -95,34 +95,28 @@ public:
           dtype_(dtype),
           blob_(blob) {}
 
-    /// Shallow copy constructor with lvalue input, e.g. `Tensor dst(src)`.
-    Tensor(const Tensor& other)
-        : Tensor(other.GetShape(),
-                 other.GetStrides(),
-                 const_cast<void*>(other.GetDataPtr()),
-                 other.GetDtype(),
-                 other.GetBlob()) {}
+    /// Copy constructor performs a "shallow" copy of the Tensor.
+    /// This takes a lvalue input, e.g. `Tensor dst(src)`.
+    Tensor(const Tensor& other) = default;
 
-    /// Shallow copy constructor with rvalue input, e.g. `Tensor dst(src[0])`.
-    Tensor(Tensor&& other)
-        : Tensor(other.GetShape(),
-                 other.GetStrides(),
-                 other.GetDataPtr(),
-                 other.GetDtype(),
-                 other.GetBlob()) {}
+    /// Move constructor performs a "shallow" copy of the Tensor.
+    /// This takes a rvalue input, e.g. `Tensor dst(src[0])`.
+    Tensor(Tensor&& other) = default;
 
-    /// Tensor assignment lvalue = lvalue, e.g. `tensor_a = tensor_b`, resulting
-    /// in a "shallow" copy.
+    /// Tensor assignment lvalue = lvalue, e.g. `tensor_a = tensor_b`.
+    /// This results in a "shallow" copy.
     Tensor& operator=(const Tensor& other) &;
 
-    /// Tensor assignment lvalue = rvalue, e.g. `tensor_a = tensor_b[0]`,
-    /// resulting in a "shallow" copy.
+    /// Tensor assignment lvalue = rvalue, e.g. `tensor_a = tensor_b[0]`.
+    /// This results in a "shallow" copy.
     Tensor& operator=(Tensor&& other) &;
 
-    /// Tensor assignment rvalue = lvalue, e.g. `tensor_a[0] = tensor_b`
+    /// Tensor assignment rvalue = lvalue, e.g. `tensor_a[0] = tensor_b`.
+    /// An actual copy of the data will be performed.
     Tensor& operator=(const Tensor& other) &&;
 
-    /// Tensor assignment rvalue = rvalue, e.g. `tensor_a[0] = tensor_b[0]`
+    /// Tensor assignment rvalue = rvalue, e.g. `tensor_a[0] = tensor_b[0]`.
+    /// An actual copy of the data will be performed.
     Tensor& operator=(Tensor&& other) &&;
 
     /// Tensor assignment rvalue = rvalue_scalar, e.g. `tensor_a[0] = 100`
