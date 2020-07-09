@@ -325,10 +325,10 @@ TEST_P(TensorListPermuteDevices, Concatenate) {
     EXPECT_TRUE(tl2.AsTensor().Slice(0, 1, 4).AllClose(t1));
 
     core::TensorList tl3 = tl1 + tl0;
-    EXPECT_EQ(tl2.GetSize(), 4);
-    EXPECT_EQ(tl2.GetReservedSize(), 8);
-    EXPECT_TRUE(tl2.AsTensor().Slice(0, 0, 3).AllClose(t1));
-    EXPECT_TRUE(tl2.AsTensor().Slice(0, 3, 4).AllClose(t0));
+    EXPECT_EQ(tl3.GetSize(), 4);
+    EXPECT_EQ(tl3.GetReservedSize(), 8);
+    EXPECT_TRUE(tl3.AsTensor().Slice(0, 0, 3).AllClose(t1));
+    EXPECT_TRUE(tl3.AsTensor().Slice(0, 3, 4).AllClose(t0));
 }
 
 TEST_P(TensorListPermuteDevices, AccessOperator) {
