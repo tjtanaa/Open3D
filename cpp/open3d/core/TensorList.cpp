@@ -99,17 +99,17 @@ void TensorList::PushBack(const Tensor& tensor) {
                 "TensorList is not resizable. Typically this TensorList is "
                 "created with shared memory from a Tensor.");
     }
-    if (tensor.GetShape() != element_shape_) {
+    if (element_shape_ != tensor.GetShape()) {
         utility::LogError(
                 "TensorList has element shape {}, but tensor has shape {}.",
                 element_shape_, tensor.GetShape());
     }
-    if (tensor.GetDtype() != GetDtype()) {
+    if (GetDtype() != tensor.GetDtype()) {
         utility::LogError("TensorList has dtype {}, but tensor has shape {}.",
                           DtypeUtil::ToString(GetDtype()),
                           DtypeUtil::ToString(tensor.GetDtype()));
     }
-    if (tensor.GetDevice() != GetDevice()) {
+    if (GetDevice() != tensor.GetDevice()) {
         utility::LogError("TensorList has device {}, but tensor has shape {}.",
                           GetDevice().ToString(),
                           tensor.GetDevice().ToString());
