@@ -198,9 +198,12 @@ public:
     /// If the size decreases, the reserved_size_ remain unchanged.
     void Resize(int64_t n);
 
-    /// Push back the copy of a tensor to the list.
-    /// The tensor must broadcastable to the TensorList's element_shape.
-    /// The tensor must be on the same device and have the same dtype.
+    /// Push back a tensor to the tensor list. The tensor's values will be
+    /// copied.
+    ///
+    /// \param tensor The tensor to to be copied to the end of the tensor list.
+    /// The tensor must be of the same shape, dtype and device as the tensot
+    /// list.
     void PushBack(const Tensor& tensor);
 
     /// Concatenate two TensorLists.

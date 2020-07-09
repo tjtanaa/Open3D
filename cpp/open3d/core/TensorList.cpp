@@ -99,10 +99,20 @@ void TensorList::PushBack(const Tensor& tensor) {
                 "TensorList is not resizable. Typically this TensorList is "
                 "created with shared memory from a Tensor.");
     }
-
-    if (!shape_util::CanBeBrocastedToShape(tensor.GetShape(), element_shape_)) {
-        utility::LogError("Incompatible shape {} and {}", element_shape_,
-                          tensor.GetShape());
+    if (tensor.GetShape() != element_shape_) {
+        utility::LogError(
+                "TensorList has element shape {}, but tensor has shape {}.",
+                element_shape_, tensor.GetShape());
+    }
+    if (tensor.GetDtype() != GetDtype()) {
+        utility::LogError("TensorList has dtype {}, but tensor has shape {}.",
+                          DtypeUtil::ToString(GetDtype()),
+                          DtypeUtil::ToString(tensor.GetDtype()));
+    }
+    if (tensor.GetDevice() != GetDevice()) {
+        utility::LogError("TensorList has device {}, but tensor has shape {}.",
+                          GetDevice().ToString(),
+                          tensor.GetDevice().ToString());
     }
 
     int64_t new_reserved_size = ComputeReserveSize(size_ + 1);
