@@ -174,20 +174,16 @@ void TensorList::ResizeWithExpand(int64_t new_size) {
     int64_t new_reserved_size = ComputeReserveSize(new_size);
     if (new_reserved_size <= reserved_size_) {
         size_ = new_size;
-        return;
+    } else {
+        Tensor new_internal_tensor(
+                shape_util::Concat({new_reserved_size}, element_shape_),
+                GetDtype(), GetDevice());
+        new_internal_tensor.Slice(0, 0, size_) =
+                internal_tensor_.Slice(0, 0, size_);
+        internal_tensor_ = new_internal_tensor;
+        reserved_size_ = new_reserved_size;
+        size_ = new_size;
     }
-
-    SizeVector new_expanded_shape =
-            shape_util::Concat({new_reserved_size}, element_shape_);
-    Tensor new_internal_tensor =
-            Tensor(new_expanded_shape, GetDtype(), GetDevice());
-
-    // Copy data
-    new_internal_tensor.Slice(/*dim=*/0, 0, size_) =
-            internal_tensor_.Slice(/*dim=*/0, 0, size_);
-    internal_tensor_ = new_internal_tensor;
-    reserved_size_ = new_reserved_size;
-    size_ = new_size;
 }
 
 int64_t TensorList::ComputeReserveSize(int64_t n) {
