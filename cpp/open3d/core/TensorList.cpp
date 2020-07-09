@@ -173,6 +173,7 @@ void TensorList::Clear() {
 void TensorList::ResizeWithExpand(int64_t new_size) {
     int64_t new_reserved_size = ComputeReserveSize(new_size);
     if (new_reserved_size <= reserved_size_) {
+        size_ = new_size;
         return;
     }
 
