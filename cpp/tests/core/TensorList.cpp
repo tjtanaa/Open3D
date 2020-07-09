@@ -284,7 +284,7 @@ TEST_P(TensorListPermuteDevices, PushBack) {
     core::Tensor t2(std::vector<float>(2 * 3, 2), {2, 3}, core::Dtype::Float32,
                     device);
 
-    core::TensorList tensor_list({2, 3}, core::Dtype::Float32);
+    core::TensorList tensor_list({2, 3}, core::Dtype::Float32, device);
     EXPECT_EQ(tensor_list.GetSize(), 0);
     EXPECT_EQ(tensor_list.GetReservedSize(), 1);
 
