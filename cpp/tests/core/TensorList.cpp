@@ -219,6 +219,32 @@ TEST_P(TensorListPermuteDevices, MoveAssignmentOperator) {
     EXPECT_TRUE(tl_a.AsTensor().IsSame(t_b));
 }
 
+TEST_P(TensorListPermuteDevices, CopyFrom) {
+    core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
+    core::Tensor t_a = core::Tensor::Ones({10, 4, 5}, dtype, device);
+    core::Tensor t_b = core::Tensor::Ones({0, 2, 3}, dtype, device);
+
+    core::TensorList tl_a = core::TensorList::FromTensor(t_a);
+    core::TensorList tl_b = core::TensorList::FromTensor(t_b);
+    tl_b.CopyFrom(tl_a);
+    EXPECT_TRUE(tl_b.AsTensor().AllClose(tl_a.AsTensor()));
+    EXPECT_FALSE(tl_b.AsTensor().IsSame(tl_a.AsTensor()));
+}
+
+TEST_P(TensorListPermuteDevices, ShallowCopyFrom) {
+    core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
+    core::Tensor t_a = core::Tensor::Ones({10, 4, 5}, dtype, device);
+    core::Tensor t_b = core::Tensor::Ones({0, 2, 3}, dtype, device);
+
+    core::TensorList tl_a = core::TensorList::FromTensor(t_a);
+    core::TensorList tl_b = core::TensorList::FromTensor(t_b);
+    tl_b.ShallowCopyFrom(tl_a);
+    EXPECT_TRUE(tl_b.AsTensor().AllClose(tl_a.AsTensor()));
+    EXPECT_TRUE(tl_b.AsTensor().IsSame(tl_a.AsTensor()));
+}
+
 TEST_P(TensorListPermuteDevices, Resize) {
     core::Device device = GetParam();
 
