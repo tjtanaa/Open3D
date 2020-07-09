@@ -195,7 +195,7 @@ public:
     /// Resize TensorList.
     /// If the size increases, the increased part will be initialized with 0.
     /// If the size decreases, the reserved_size_ remain unchanged.
-    void Resize(int64_t n);
+    void Resize(int64_t new_size);
 
     /// Push back a tensor to the tensor list. The tensor's values will be
     /// copied.

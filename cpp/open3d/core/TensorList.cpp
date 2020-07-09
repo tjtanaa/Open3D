@@ -72,7 +72,7 @@ Tensor TensorList::AsTensor() const {
     return internal_tensor_.Slice(/*dim=*/0, 0, size_);
 }
 
-void TensorList::Resize(int64_t n) {
+void TensorList::Resize(int64_t new_size) {
     if (!is_resizable_) {
         utility::LogError(
                 "TensorList is not resizable. Typically this TensorList is "
@@ -80,13 +80,9 @@ void TensorList::Resize(int64_t n) {
     }
 
     // Increase internal tensor size.
-    ResizeWithExpand(n);
-
-    // Initialize with 0.
-    if (n > size_) {
-        internal_tensor_.Slice(/*dim=*/0, size_, n).Fill(0);
-    }
-    size_ = n;
+    int64_t old_size = size_;
+    ResizeWithExpand(new_size);
+    internal_tensor_.Slice(0, old_size, new_size).Fill(0);
 }
 
 void TensorList::PushBack(const Tensor& tensor) {
@@ -111,8 +107,7 @@ void TensorList::PushBack(const Tensor& tensor) {
                           tensor.GetDevice().ToString());
     }
     ResizeWithExpand(size_ + 1);
-    internal_tensor_[size_] = tensor;
-    ++size_;
+    internal_tensor_[size_ - 1] = tensor;
 }
 
 TensorList TensorList::Concatenate(const TensorList& a, const TensorList& b) {
@@ -160,9 +155,8 @@ void TensorList::Extend(const TensorList& other) {
     }
 
     ResizeWithExpand(size_ + extension.GetSize());
-    internal_tensor_.Slice(/*dim=*/0, size_, size_ + extension.GetSize()) =
+    internal_tensor_.Slice(0, size_ - extension.size_, size_) =
             extension.AsTensor();
-    size_ = size_ + extension.GetSize();
 }
 
 Tensor TensorList::operator[](int64_t index) const {
@@ -192,6 +186,7 @@ void TensorList::ResizeWithExpand(int64_t new_size) {
             internal_tensor_.Slice(/*dim=*/0, 0, size_);
     internal_tensor_ = new_internal_tensor;
     reserved_size_ = new_reserved_size;
+    size_ = new_size;
 }
 
 int64_t TensorList::ComputeReserveSize(int64_t n) {
