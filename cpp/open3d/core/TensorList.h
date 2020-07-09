@@ -186,7 +186,8 @@ public:
     /// be explicitly copied.
     void CopyFrom(const TensorList& other);
 
-    /// Shallow copy
+    /// Performs "shallow" copy from another TensorList. The internal tensor
+    /// memory will be shared.
     void ShallowCopyFrom(const TensorList& other);
 
     /// Return the reference of the contained valid tensors with shared memory.

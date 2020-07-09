@@ -187,6 +187,38 @@ TEST_P(TensorListPermuteDevices, MoveConstructor) {
     EXPECT_TRUE(tl.AsTensor().IsSame(t));
 }
 
+TEST_P(TensorListPermuteDevices, CopyAssignmentOperator) {
+    core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
+    core::Tensor t = core::Tensor::Ones({3, 4, 5}, dtype, device);
+
+    // Initially tl_a and tl_b does not share the same underlying memory.
+    core::TensorList tl_a = core::TensorList::FromTensor(t);
+    core::TensorList tl_b = core::TensorList::FromTensor(t);
+    EXPECT_TRUE(tl_a.AsTensor().AllClose(tl_b.AsTensor()));
+    EXPECT_FALSE(tl_a.AsTensor().IsSame(tl_b.AsTensor()));
+
+    // After copy assignment, the underlying memory are the same.
+    tl_a = tl_b;
+    EXPECT_TRUE(tl_a.AsTensor().AllClose(tl_b.AsTensor()));
+    EXPECT_TRUE(tl_a.AsTensor().IsSame(tl_b.AsTensor()));
+}
+
+TEST_P(TensorListPermuteDevices, MoveAssignmentOperator) {
+    core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
+    core::Tensor t_a = core::Tensor::Ones({3, 4, 5}, dtype, device);
+    core::Tensor t_b = core::Tensor::Ones({3, 4, 5}, dtype, device);
+
+    core::TensorList tl_a = core::TensorList::FromTensor(t_a, /*inplace=*/true);
+    auto create_tl_b = [&t_b]() {
+        return core::TensorList::FromTensor(t_b, /*inplace=*/true);
+    };
+    EXPECT_FALSE(tl_a.AsTensor().IsSame(t_b));
+    tl_a = create_tl_b();
+    EXPECT_TRUE(tl_a.AsTensor().IsSame(t_b));
+}
+
 TEST_P(TensorListPermuteDevices, Resize) {
     core::Device device = GetParam();
 
