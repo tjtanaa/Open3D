@@ -80,16 +80,12 @@ void TensorList::Resize(int64_t n) {
     }
 
     // Increase internal tensor size.
-    int64_t new_reserved_size = ComputeReserveSize(n);
-    if (new_reserved_size > reserved_size_) {
-        ExpandTensor(new_reserved_size);
-    }
+    MaybeExpandTensor(n);
 
     // Initialize with 0.
     if (n > size_) {
         internal_tensor_.Slice(/*dim=*/0, size_, n).Fill(0);
     }
-
     size_ = n;
 }
 
@@ -114,13 +110,7 @@ void TensorList::PushBack(const Tensor& tensor) {
                           GetDevice().ToString(),
                           tensor.GetDevice().ToString());
     }
-
-    int64_t new_reserved_size = ComputeReserveSize(size_ + 1);
-    if (new_reserved_size > reserved_size_) {
-        ExpandTensor(new_reserved_size);
-    }
-
-    // Copy tensor
+    MaybeExpandTensor(size_ + 1);
     internal_tensor_[size_] = tensor;
     ++size_;
 }
@@ -169,10 +159,7 @@ void TensorList::Extend(const TensorList& other) {
         extension = TensorList(*this);
     }
 
-    int64_t new_reserved_size = ComputeReserveSize(size_ + extension.GetSize());
-    if (new_reserved_size > reserved_size_) {
-        ExpandTensor(new_reserved_size);
-    }
+    MaybeExpandTensor(size_ + extension.GetSize());
     internal_tensor_.Slice(/*dim=*/0, size_, size_ + extension.GetSize()) =
             extension.AsTensor();
     size_ = size_ + extension.GetSize();
@@ -189,11 +176,12 @@ void TensorList::Clear() {
 }
 
 // Protected
-void TensorList::ExpandTensor(int64_t new_reserved_size) {
+void TensorList::MaybeExpandTensor(int64_t new_size) {
+    int64_t new_reserved_size = ComputeReserveSize(new_size);
     if (new_reserved_size <= reserved_size_) {
-        utility::LogError("New size {} is smaller than current size {}.",
-                          new_reserved_size, reserved_size_);
+        return;
     }
+
     SizeVector new_expanded_shape =
             shape_util::ConcatShapes({new_reserved_size}, element_shape_);
     Tensor new_internal_tensor =

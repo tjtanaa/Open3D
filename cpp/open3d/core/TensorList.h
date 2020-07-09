@@ -262,8 +262,15 @@ protected:
           internal_tensor_(internal_tensor),
           is_resizable_(is_resizable) {}
 
-    /// Expand the size of the internal tensor.
-    void ExpandTensor(int64_t new_reserved_size);
+    /// Expand internal tensor to be larger or equal to the requested size. If
+    /// the current reserved size is smaller than the requested size, the
+    /// reserved size will be increased, a new internal tensor will be allocated
+    /// and the original data will be copied. If the current reserved size is
+    /// larger than or equal to the requested size, no operation will be
+    /// performed.
+    ///
+    /// \param new_size The requested size.
+    void MaybeExpandTensor(int64_t new_size);
 
     /// Compute the reserved size for the desired number of tensors
     /// with reserved_size_ = (1 << (ceil(log2(size_)) + 1)).
