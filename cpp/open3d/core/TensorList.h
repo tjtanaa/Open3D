@@ -189,6 +189,9 @@ public:
     /// memory will be shared.
     void ShallowCopyFrom(const TensorList& other);
 
+    /// Duplicate the current TensorList. Values will be copied.
+    TensorList Copy() const;
+
     /// Return the reference of the contained valid tensors with shared memory.
     Tensor AsTensor() const;
 

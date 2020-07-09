@@ -308,6 +308,29 @@ TEST_P(TensorListPermuteDevices, PushBack) {
                       {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2}));
 }
 
+TEST_P(TensorListPermuteDevices, Concatenate) {
+    core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
+
+    core::Tensor t0 = core::Tensor::Zeros({1, 2, 3}, dtype, device);
+    core::Tensor t1 = core::Tensor::Ones({3, 2, 3}, dtype, device);
+
+    core::TensorList tl0 = core::TensorList::FromTensor(t0);
+    core::TensorList tl1 = core::TensorList::FromTensor(t1);
+
+    core::TensorList tl2 = tl0 + tl1;
+    EXPECT_EQ(tl2.GetSize(), 4);
+    EXPECT_EQ(tl2.GetReservedSize(), 8);
+    EXPECT_TRUE(tl2.AsTensor().Slice(0, 0, 1).AllClose(t0));
+    EXPECT_TRUE(tl2.AsTensor().Slice(0, 1, 4).AllClose(t1));
+
+    core::TensorList tl3 = tl1 + tl0;
+    EXPECT_EQ(tl2.GetSize(), 4);
+    EXPECT_EQ(tl2.GetReservedSize(), 8);
+    EXPECT_TRUE(tl2.AsTensor().Slice(0, 0, 3).AllClose(t1));
+    EXPECT_TRUE(tl2.AsTensor().Slice(0, 3, 4).AllClose(t0));
+}
+
 TEST_P(TensorListPermuteDevices, AccessOperator) {
     core::Device device = GetParam();
 
@@ -376,40 +399,6 @@ TEST_P(TensorListPermuteDevices, IndexGet) {
     EXPECT_EQ(tensor.ToFlatVector<float>(),
               std::vector<float>(
                       {0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2}));
-}
-
-TEST_P(TensorListPermuteDevices, Concatenate) {
-    core::Device device = GetParam();
-
-    core::Tensor t0(std::vector<float>(2 * 3, 0), {2, 3}, core::Dtype::Float32,
-                    device);
-    std::vector<core::Tensor> tensors0 = {t0};
-
-    core::Tensor t1(std::vector<float>(2 * 3, 1), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t2(std::vector<float>(2 * 3, 2), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t3(std::vector<float>(2 * 3, 3), {2, 3}, core::Dtype::Float32,
-                    device);
-    std::vector<core::Tensor> tensors1 = {t1, t2, t3};
-
-    core::TensorList tensor_list0(tensors0);
-    core::TensorList tensor_list1(tensors1);
-
-    core::TensorList tensor_list2 = tensor_list0 + tensor_list1;
-    EXPECT_EQ(tensor_list2.GetSize(), 4);
-    EXPECT_EQ(tensor_list2.GetReservedSize(), 8);
-    EXPECT_EQ(tensor_list2.AsTensor().ToFlatVector<float>(),
-              std::vector<float>({0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1,
-                                  2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3}));
-
-    core::TensorList tensor_list3 =
-            core::TensorList::Concatenate(tensor_list1, tensor_list0);
-    EXPECT_EQ(tensor_list3.GetSize(), 4);
-    EXPECT_EQ(tensor_list3.GetReservedSize(), 8);
-    EXPECT_EQ(tensor_list3.AsTensor().ToFlatVector<float>(),
-              std::vector<float>({1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
-                                  3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0}));
 }
 
 TEST_P(TensorListPermuteDevices, Extend) {

@@ -60,7 +60,8 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
 
 void TensorList::CopyFrom(const TensorList& other) {
     ShallowCopyFrom(other);
-    internal_tensor_ = other.AsTensor().Copy();
+    // Copy the full other.internal_tensor_, not just other.AsTensor().
+    internal_tensor_ = other.internal_tensor_.Copy();
 }
 
 void TensorList::ShallowCopyFrom(const TensorList& other) {
@@ -68,8 +69,14 @@ void TensorList::ShallowCopyFrom(const TensorList& other) {
     *this = other;
 }
 
+TensorList TensorList::Copy() const {
+    TensorList copied(*this);  // Shallow copy.
+    copied.CopyFrom(*this);
+    return copied;
+}
+
 Tensor TensorList::AsTensor() const {
-    return internal_tensor_.Slice(/*dim=*/0, 0, size_);
+    return internal_tensor_.Slice(0, 0, size_);
 }
 
 void TensorList::Resize(int64_t new_size) {
@@ -111,7 +118,7 @@ void TensorList::PushBack(const Tensor& tensor) {
 }
 
 TensorList TensorList::Concatenate(const TensorList& a, const TensorList& b) {
-    TensorList result(a);
+    TensorList result = a.Copy();
     result.Extend(b);
     return result;
 }
