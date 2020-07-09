@@ -267,6 +267,11 @@ TEST_P(TensorListPermuteDevices, Resize) {
     EXPECT_EQ(tl.GetReservedSize(), 16);
     EXPECT_TRUE(tl.AsTensor().AllClose(
             core::Tensor::Ones({2, 4, 5}, dtype, device)));
+
+    tl = core::TensorList::FromTensor(t, /*inplace*/ true);
+    EXPECT_EQ(tl.GetSize(), 3);
+    EXPECT_EQ(tl.GetReservedSize(), 3);
+    EXPECT_ANY_THROW(tl.Resize(5));
 }
 
 TEST_P(TensorListPermuteDevices, PushBack) {
