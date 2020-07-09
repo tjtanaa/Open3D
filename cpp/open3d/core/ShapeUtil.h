@@ -98,7 +98,7 @@ int64_t WrapDim(int64_t dim, int64_t max_dim, bool inclusive = false);
 SizeVector InferShape(SizeVector shape, int64_t num_elements);
 
 /// Concatenate two shapes.
-SizeVector ConcatShapes(const SizeVector& l_shape, const SizeVector& r_shape);
+SizeVector Concat(const SizeVector& l_shape, const SizeVector& r_shape);
 
 /// Returns a SizeVector of {0, 1, ..., n - 1}, similar to std::iota.
 SizeVector Iota(int64_t n);

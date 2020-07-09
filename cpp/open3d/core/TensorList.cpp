@@ -50,7 +50,7 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
     } else {
         int64_t reserved_size = TensorList::ComputeReserveSize(size);
         Tensor internal_tensor = Tensor::Empty(
-                shape_util::ConcatShapes({reserved_size}, element_shape),
+                shape_util::Concat({reserved_size}, element_shape),
                 tensor.GetDtype(), tensor.GetDevice());
         internal_tensor.Slice(0, 0, size) = tensor;
         return TensorList(element_shape, size, reserved_size, internal_tensor,
@@ -183,7 +183,7 @@ void TensorList::MaybeExpandTensor(int64_t new_size) {
     }
 
     SizeVector new_expanded_shape =
-            shape_util::ConcatShapes({new_reserved_size}, element_shape_);
+            shape_util::Concat({new_reserved_size}, element_shape_);
     Tensor new_internal_tensor =
             Tensor(new_expanded_shape, GetDtype(), GetDevice());
 

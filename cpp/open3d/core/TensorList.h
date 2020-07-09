@@ -72,10 +72,9 @@ public:
         : element_shape_(element_shape),
           size_(size),
           reserved_size_(ComputeReserveSize(size)),
-          internal_tensor_(
-                  shape_util::ConcatShapes({reserved_size_}, element_shape_),
-                  dtype,
-                  device) {}
+          internal_tensor_(shape_util::Concat({reserved_size_}, element_shape_),
+                           dtype,
+                           device) {}
 
     /// Constructs a TensorList from a vector of Tensors. The tensors must have
     /// the same shape, dtype and device. Values will be copied.
@@ -142,9 +141,9 @@ public:
         });
 
         // Construct internal tensor.
-        SizeVector expanded_shape =
-                shape_util::ConcatShapes({reserved_size_}, element_shape_);
-        internal_tensor_ = Tensor(expanded_shape, dtype, device);
+        internal_tensor_ =
+                Tensor(shape_util::Concat({reserved_size_}, element_shape_),
+                       dtype, device);
         size_t i = 0;
         for (auto iter = begin; iter != end; ++iter, ++i) {
             internal_tensor_[i] = *iter;
