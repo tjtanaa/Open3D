@@ -80,7 +80,7 @@ void TensorList::Resize(int64_t n) {
     }
 
     // Increase internal tensor size.
-    MaybeExpandTensor(n);
+    ResizeWithExpand(n);
 
     // Initialize with 0.
     if (n > size_) {
@@ -110,7 +110,7 @@ void TensorList::PushBack(const Tensor& tensor) {
                           GetDevice().ToString(),
                           tensor.GetDevice().ToString());
     }
-    MaybeExpandTensor(size_ + 1);
+    ResizeWithExpand(size_ + 1);
     internal_tensor_[size_] = tensor;
     ++size_;
 }
@@ -159,7 +159,7 @@ void TensorList::Extend(const TensorList& other) {
         extension = TensorList(*this);
     }
 
-    MaybeExpandTensor(size_ + extension.GetSize());
+    ResizeWithExpand(size_ + extension.GetSize());
     internal_tensor_.Slice(/*dim=*/0, size_, size_ + extension.GetSize()) =
             extension.AsTensor();
     size_ = size_ + extension.GetSize();
@@ -176,7 +176,7 @@ void TensorList::Clear() {
 }
 
 // Protected
-void TensorList::MaybeExpandTensor(int64_t new_size) {
+void TensorList::ResizeWithExpand(int64_t new_size) {
     int64_t new_reserved_size = ComputeReserveSize(new_size);
     if (new_reserved_size <= reserved_size_) {
         return;

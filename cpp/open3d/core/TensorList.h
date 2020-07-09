@@ -269,7 +269,7 @@ protected:
     /// performed.
     ///
     /// \param new_size The requested size.
-    void MaybeExpandTensor(int64_t new_size);
+    void ResizeWithExpand(int64_t new_size);
 
     /// Compute the reserved size for the desired number of tensors
     /// with reserved_size_ = (1 << (ceil(log2(size_)) + 1)).
