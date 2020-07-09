@@ -59,6 +59,8 @@ TensorList TensorList::FromTensor(const Tensor& tensor, bool inplace) {
 }
 
 void TensorList::CopyFrom(const TensorList& other) {
+    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // A fixed sized tensorlist copy from???
     ShallowCopyFrom(other);
     // Copy the full other.internal_tensor_, not just other.AsTensor().
     internal_tensor_ = other.internal_tensor_.Copy();
@@ -118,6 +120,7 @@ void TensorList::PushBack(const Tensor& tensor) {
 }
 
 TensorList TensorList::Concatenate(const TensorList& a, const TensorList& b) {
+    // A full copy of a is required.
     TensorList result = a.Copy();
     result.Extend(b);
     return result;

@@ -326,6 +326,7 @@ TEST_P(TensorListPermuteDevices, Concatenate) {
 
     core::TensorList tl3 = tl1 + tl0;
     EXPECT_EQ(tl3.GetSize(), 4);
+    EXPECT_EQ(tl1.GetReservedSize(), 8);
     EXPECT_EQ(tl3.GetReservedSize(), 8);
     EXPECT_TRUE(tl3.AsTensor().Slice(0, 0, 3).AllClose(t1));
     EXPECT_TRUE(tl3.AsTensor().Slice(0, 3, 4).AllClose(t0));
