@@ -165,20 +165,20 @@ public:
     /// tensor values will be copied when creating the tensorlist.
     static TensorList FromTensor(const Tensor& tensor, bool inplace = false);
 
-    /// Copy constructor for TensorList. The internal tensor shares the same
+    /// Copy constructor for TensorList. The internal tensor will share the same
     /// memory as the input. Also see: the copy constructor for Tensor.
     TensorList(const TensorList& other) = default;
 
-    /// Move constructor for TensorList. The internal tensor shares the same
+    /// Move constructor for TensorList. The internal tensor will share the same
     /// memory as the input. Also see: the move constructor for Tensor.
     TensorList(TensorList&& other) = default;
 
-    /// Copy assignment operator. This results in a "shallow" copy of the
-    /// internal tensor.
+    /// Copy assignment operator. The internal tensor will share the same memory
+    /// as the input.
     TensorList& operator=(const TensorList& other) & = default;
 
-    /// Move assignment operator. This results in a "shallow" copy of the
-    /// internal tensor.
+    /// Move assignment operator. The internal tensor will share the same memory
+    /// as the input.
     TensorList& operator=(TensorList&& other) & = default;
 
     /// Performs actual copy from another TensorList. The internal tensor will
