@@ -69,24 +69,37 @@ void TensorList::ShallowCopyFrom(const TensorList& other) {
 }
 
 Tensor TensorList::AsTensor() const {
-    return internal_tensor_.Slice(0 /* dim */, 0, size_);
+    return internal_tensor_.Slice(/*dim=*/0, 0, size_);
 }
 
 void TensorList::Resize(int64_t n) {
-    // Increase internal tensor size
+    if (!is_resizable_) {
+        utility::LogError(
+                "TensorList is not resizable. Typically this TensorList is "
+                "created with shared memory from a Tensor.");
+    }
+
+    // Increase internal tensor size.
     int64_t new_reserved_size = ComputeReserveSize(n);
     if (new_reserved_size > reserved_size_) {
         ExpandTensor(new_reserved_size);
     }
 
+    // Initialize with 0.
     if (n > size_) {
-        // Now new_reserved_size <= reserved_size, safe to fill in data
-        internal_tensor_.Slice(0 /* dim */, size_, n).Fill(0);
+        internal_tensor_.Slice(/*dim=*/0, size_, n).Fill(0);
     }
+
     size_ = n;
 }
 
 void TensorList::PushBack(const Tensor& tensor) {
+    if (!is_resizable_) {
+        utility::LogError(
+                "TensorList is not resizable. Typically this TensorList is "
+                "created with shared memory from a Tensor.");
+    }
+
     if (!shape_util::CanBeBrocastedToShape(tensor.GetShape(), element_shape_)) {
         utility::LogError("Incompatible shape {} and {}", element_shape_,
                           tensor.GetShape());
@@ -108,7 +121,14 @@ TensorList TensorList::Concatenate(const TensorList& a, const TensorList& b) {
     return result;
 }
 
-void TensorList::Extend(const TensorList& other) {  // Check consistency
+void TensorList::Extend(const TensorList& other) {
+    if (!is_resizable_) {
+        utility::LogError(
+                "TensorList is not resizable. Typically this TensorList is "
+                "created with shared memory from a Tensor.");
+    }
+
+    // Check consistency
     if (element_shape_ != other.GetElementShape()) {
         utility::LogError("TensorList shapes {} and {} are inconsistent.",
                           element_shape_, other.GetElementShape());
@@ -143,7 +163,7 @@ void TensorList::Extend(const TensorList& other) {  // Check consistency
     if (new_reserved_size > reserved_size_) {
         ExpandTensor(new_reserved_size);
     }
-    internal_tensor_.Slice(0 /* dim */, size_, size_ + extension.GetSize()) =
+    internal_tensor_.Slice(/*dim=*/0, size_, size_ + extension.GetSize()) =
             extension.AsTensor();
     size_ = size_ + extension.GetSize();
 }
@@ -170,8 +190,8 @@ void TensorList::ExpandTensor(int64_t new_reserved_size) {
             Tensor(new_expanded_shape, GetDtype(), GetDevice());
 
     // Copy data
-    new_internal_tensor.Slice(0 /* dim */, 0, size_) =
-            internal_tensor_.Slice(0 /* dim */, 0, size_);
+    new_internal_tensor.Slice(/*dim=*/0, 0, size_) =
+            internal_tensor_.Slice(/*dim=*/0, 0, size_);
     internal_tensor_ = new_internal_tensor;
     reserved_size_ = new_reserved_size;
 }

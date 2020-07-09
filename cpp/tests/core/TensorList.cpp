@@ -247,35 +247,26 @@ TEST_P(TensorListPermuteDevices, ShallowCopyFrom) {
 
 TEST_P(TensorListPermuteDevices, Resize) {
     core::Device device = GetParam();
+    core::Dtype dtype = core::Dtype::Float32;
+    core::Tensor t = core::Tensor::Ones({3, 4, 5}, dtype, device);
 
-    core::Tensor t0(std::vector<float>(2 * 3, 0), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t1(std::vector<float>(2 * 3, 1), {2, 3}, core::Dtype::Float32,
-                    device);
-    core::Tensor t2(std::vector<float>(2 * 3, 2), {2, 3}, core::Dtype::Float32,
-                    device);
+    core::TensorList tl = core::TensorList::FromTensor(t);
+    EXPECT_EQ(tl.GetSize(), 3);
+    EXPECT_EQ(tl.GetReservedSize(), 8);
+    EXPECT_TRUE(tl.AsTensor().AllClose(t));
 
-    std::vector<core::Tensor> tensors = {t0, t1, t2};
-    core::TensorList tensor_list(tensors);
-    EXPECT_EQ(tensor_list.GetSize(), 3);
-    EXPECT_EQ(tensor_list.GetReservedSize(), 8);
-    EXPECT_EQ(tensor_list.AsTensor().ToFlatVector<float>(),
-              std::vector<float>(
-                      {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2}));
+    tl.Resize(5);
+    EXPECT_EQ(tl.GetSize(), 5);
+    EXPECT_EQ(tl.GetReservedSize(), 16);
+    EXPECT_TRUE(tl.AsTensor().Slice(0, 0, 3).AllClose(t));
+    EXPECT_TRUE(tl.AsTensor().Slice(0, 3, 5).AllClose(
+            core::Tensor::Zeros({2, 4, 5}, dtype, device)));
 
-    tensor_list.Resize(5);
-    EXPECT_EQ(tensor_list.GetSize(), 5);
-    EXPECT_EQ(tensor_list.GetReservedSize(), 16);
-    EXPECT_EQ(
-            tensor_list.AsTensor().ToFlatVector<float>(),
-            std::vector<float>({0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2,
-                                2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
-
-    tensor_list.Resize(2);
-    EXPECT_EQ(tensor_list.GetSize(), 2);
-    EXPECT_EQ(tensor_list.GetReservedSize(), 16);
-    EXPECT_EQ(tensor_list.AsTensor().ToFlatVector<float>(),
-              std::vector<float>({0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1}));
+    tl.Resize(2);
+    EXPECT_EQ(tl.GetSize(), 2);
+    EXPECT_EQ(tl.GetReservedSize(), 16);
+    EXPECT_TRUE(tl.AsTensor().AllClose(
+            core::Tensor::Ones({2, 4, 5}, dtype, device)));
 }
 
 TEST_P(TensorListPermuteDevices, PushBack) {

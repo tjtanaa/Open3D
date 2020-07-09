@@ -193,9 +193,9 @@ public:
     /// Return the reference of the contained valid tensors with shared memory.
     Tensor AsTensor() const;
 
-    /// Resize an existing tensorlist.
-    /// If the size increases, the increased part will be assigned 0.
-    /// If the size decreases, the decreased part's value will be undefined.
+    /// Resize TensorList.
+    /// If the size increases, the increased part will be initialized with 0.
+    /// If the size decreases, the reserved_size_ remain unchanged.
     void Resize(int64_t n);
 
     /// Push back the copy of a tensor to the list.
